@@ -6,3 +6,8 @@ __pycache__
 env
 .venv
 venv
+
+tmp
+
+*pcap
+*pcapng

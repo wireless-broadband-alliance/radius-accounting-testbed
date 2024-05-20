@@ -11,8 +11,9 @@ import logging
 class Command:
     """Base class for running commands in background and writing to log file"""
 
-    def __init__(self, command: list, log_file, wait_time=None):
+    def __init__(self, name: str, command: list, log_file, wait_time=None):
         self.command = command
+        self.name = name
         self.log_file = log_file
         self.wait_time = wait_time
         self.process = None
@@ -32,6 +33,7 @@ class Command:
 
     def start(self):
         """Run command in background, return process object"""
+        logging.info(f"Starting {self.name}...")
         self.thread = threading.Thread(target=self.run_subprocess)
         self.thread.start()
 
@@ -47,11 +49,14 @@ class Command:
 
     def stop(self):
         if self.process is not None:
+            logging.info(f"Stopping {self.name}...")
             pid = self.process.pid
             os.kill(pid, signal.SIGTERM)
             # self.process.kill()
             self.process = None
             self.thread = None
+        else:
+            logging.debug(f"process {self.name} already stopped...")
 
 
 class WpaSupplicant(Command):
@@ -83,7 +88,7 @@ class WpaSupplicant(Command):
             "-i",
             self.interface,
         ]
-        super().__init__(cmd, self.log_location, self.wait_time)
+        super().__init__("wpa_supplicant", cmd, self.log_location, self.wait_time)
 
     def get_username(self):
         return self.username
@@ -153,7 +158,7 @@ class FreeRADIUS(Command):
             cmd = ["freeradius", "-f", "-l", "stdout"]
         subprocess.Popen(["systemctl", "stop", "freeradius.service"])
 
-        super().__init__(cmd, self.log_location, self.wait_time)
+        super().__init__("FreeRADIUS", cmd, self.log_location, self.wait_time)
 
 
 class TCPDump(Command):
@@ -170,4 +175,4 @@ class TCPDump(Command):
         log_location = log_location
         wait_time = wait_time
         cmd = ["tcpdump", "-i", interface, "-w", pcap_location, filter]
-        super().__init__(cmd, log_location, wait_time)
+        super().__init__("tcpdump", cmd, log_location, wait_time)

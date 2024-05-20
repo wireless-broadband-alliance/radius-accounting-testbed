@@ -30,7 +30,7 @@ def get_data_chunk(server_host, server_port, chunk_size, iface=None):
     try:
         client_socket.connect((server_host, server_port))
         logging.debug(f"Connected to server at {server_host}:{server_port}")
-        logging.info(
+        logging.debug(
             f"Pulling {chunk_size} bytes of data from {server_host}:{server_port}"
         )
         while True:
@@ -99,7 +99,7 @@ class TCPServer:
         logging.info("Stopping TCP data server...")
         self.stop_event.set()
         # Get data chunk to stop the server, send out of lo (internally) so it won't contribute to usage in accounting.
-        get_data_chunk("127.0.0.1", self.port, self.chunk_size)
+        get_data_chunk("127.0.0.1", self.port, 1)
         self.server_thread = None
 
 
