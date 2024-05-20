@@ -8,6 +8,3 @@ env
 venv
 
 tmp
-
-*pcap
-*pcapng
