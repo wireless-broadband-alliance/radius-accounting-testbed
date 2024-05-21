@@ -1,9 +1,9 @@
 import logging
 import argparse
 
-from test_control import get_chunks
-from test_control import DEFAULT_LOGS_DIR
-from test_control import DEFAULT_PCAP_DIR
+from raatest import get_chunks
+from raatest import DEFAULT_LOGS_DIR
+from raatest import DEFAULT_PCAP_DIR
 
 # TODO: Add user interface to setup and control test
 
