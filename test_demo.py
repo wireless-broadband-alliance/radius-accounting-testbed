@@ -122,14 +122,15 @@ class TestAttributeChecks:
 
     @pytest.mark.skip(reason="not implemented yet")
     def test_cui_echoed(self, large_download_pcap):
-        """At least 3 CUIs are echoed."""
+        """Persistent CUI is echoed."""
         pass
 
-    def __gigaword_rolls_over(self, packets, octet_func: Callable):
+    def __verify_usage_increasing(self, packets, octet_func: Callable):
         total_usage = 0
         stop_packets = pe.get_stop_packets(packets)
         update_packets = pe.get_update_packets(packets)
         rel_packets = update_packets + stop_packets
+        #Verify total usage is increasing.
         for packet in rel_packets:
             prev_total_usage = total_usage
             total_usage = octet_func(packet)
@@ -137,15 +138,18 @@ class TestAttributeChecks:
 
     def test_in_gigaword_rolls_over(self, large_download_pcap):
         """Acct-Input-Gigaword rolls over."""
-        self.__gigaword_rolls_over(large_download_pcap, pe.get_total_output_octets)
+        #Verify gigaword rollover by checking that the total usage is increasing.
+        self.__verify_usage_increasing(large_download_pcap, pe.get_total_output_octets)
 
     def test_out_gigaword_rolls_over(self, large_upload_pcap):
         """Acct-Output-Gigaword rolls over."""
-        self.__gigaword_rolls_over(large_upload_pcap, pe.get_total_input_octets)
+        #Verify gigaword rollover by checking that the total usage is increasing.
+        self.__verify_usage_increasing(large_upload_pcap, pe.get_total_input_octets)
 
 
 class TestAccuracyChecks:
     def get_octet_bounds(self, total_octets) -> Tuple[int, int]:
+        """Get lower and upper bounds for octet count."""
         tolerance = 0.1
         return total_octets * (1 - tolerance), total_octets * (1 + tolerance)
 
