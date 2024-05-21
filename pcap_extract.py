@@ -85,6 +85,11 @@ def get_packets_by_codes(packets: List[Radius], *codes) -> List[Radius]:
     return packets_out
 
 
+def get_accept_packets(packets: List[Radius]) -> List[Radius]:
+    """Look for Access-Accept packets"""
+    return get_packets_by_codes(packets, 2)
+
+
 def get_start_packets(packets: List[Radius]) -> List[Radius]:
     """Look for packets with Acct-Status-Type as Start"""
     return __filter_packets(packets, 40, 1)
@@ -170,3 +175,10 @@ def get_acct_session_time(packet: Radius) -> list:
 def calculate_total_octets(octets: int, gigawords: int) -> int:
     """Calculate total Acct-*-Octets and Acct-*-Gigawords."""
     return octets + (gigawords * 2**32)
+
+
+if __name__ == "__main__":
+    username = "1542aeee-0c55-404c-badf-ccc5093d10ca@example.com"
+    input_pcap = "pcaps/test_dl_5gb.tcpdump.radius.pcap"
+    packets = get_relevant_packets(input_pcap, username)
+    # embed()
