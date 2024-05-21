@@ -196,13 +196,18 @@ class TestAccuracyChecks:
             <= session_time_upper_bound
         )
 
-    def test_packet_count_nonzero(self, large_download_pcap):
-        """Packet count is non-zero."""
+    def test_input_packet_count_nonzero(self, large_download_pcap):
+        """Input Packet count is non-zero."""
+        packets = large_download_pcap
+        packet = self.__get_stop_or_update_packets(packets)
+        input_packets_attributes = pe.get_acct_input_packets(packet)
+        assert len(input_packets_attributes) == 1
+        assert input_packets_attributes[0] > 0
+
+    def test_output_packet_count_nonzero(self, large_download_pcap):
+        """Output Packet count is non-zero."""
         packets = large_download_pcap
         packet = self.__get_stop_or_update_packets(packets)
         output_packets_attributes = pe.get_acct_output_packets(packet)
-        input_packets_attributes = pe.get_acct_input_packets(packet)
         assert len(output_packets_attributes) == 1
-        assert len(input_packets_attributes) == 1
         assert output_packets_attributes[0] > 0
-        assert input_packets_attributes[0] > 0
