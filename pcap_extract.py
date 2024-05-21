@@ -170,14 +170,3 @@ def get_acct_session_time(packet: Radius) -> list:
 def calculate_total_octets(octets: int, gigawords: int) -> int:
     """Calculate total Acct-*-Octets and Acct-*-Gigawords."""
     return octets + (gigawords * 2**32)
-
-
-# if __name__ == "__main__":
-#    # radius_packets = get_radius_packets("radius.example.pcapng")
-#    radius_packets = get_radius_packets("tcpdump.radius.pcap")
-#    other = get_packets_by_username(
-#        # radius_packets, "27079d1d-f35e-4e49-ae1a-646e942e5bf0@example.com"
-#        radius_packets,
-#        "6b284277-b4b8-43b5-8e33-12dd13b06fed@example.com",
-#    )
-#    # embed()
