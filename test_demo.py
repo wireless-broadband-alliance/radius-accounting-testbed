@@ -115,10 +115,12 @@ class TestAttributeChecks:
         assert max(all_input_octets) == pe.get_total_input_octets(stop_packet)
         assert max(all_output_octets) == pe.get_total_output_octets(stop_packet)
 
+    @pytest.mark.skip(reason="not implemented yet")
     def test_at_least_three_class_echoed(self, large_download_pcap):
         """At least 3 Class attributes are echoed."""
         pass
 
+    @pytest.mark.skip(reason="not implemented yet")
     def test_cui_echoed(self, large_download_pcap):
         """At least 3 CUIs are echoed."""
         pass
