@@ -34,3 +34,33 @@ Purpose is to verify reported attribute values are accurate.
 3. Session duration is accurate.
 4. Input packet count is non-zero.
 5. Output packet count is non-zero.
+
+### Run Demo
+
+Make sure you have the required packages installed (see below).
+1. Python3
+2. Pip
+3. Python virtualenv (optional but recommended)
+
+Clone this repository and navigate to the root directory.
+
+Create the virtual environment:
+```bash
+python3 -m venv env
+```
+
+Activate the virtual environment:
+```bash
+source env/bin/activate
+```
+
+Install the required packages:
+```bash
+pip install -r requirements.txt
+```
+
+Run Pytest:
+```bash
+pytest -v -k .
+```
+
