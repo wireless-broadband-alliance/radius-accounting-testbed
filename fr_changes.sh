@@ -43,6 +43,19 @@ server raa {
   accounting {
     ok
   }
+  post-auth {
+    if &reply:Packet-Type == "Access-Accept" {
+      update reply {
+        &Class += "class1"
+        &Class += "class2"
+        &Class += "class3"
+        &Class += "class4"
+        &Class += "class5"
+        &Chargeable-User-Identity += "cui1"
+        &Acct-Interim-Interval := 10
+      }
+    }
+  }
 }
 
 client any {

@@ -22,7 +22,7 @@ def large_download_pcap() -> List[Radius]:
 @pytest.fixture
 def large_upload_pcap() -> List[Radius]:
     """Import PCAP from large file upload and provide to test functions."""
-    username = "519c25f2-7c0e-4e86-8d7f-023802443f63@example.com"
+    username = "e73d671e-e0b7-4000-9ca6-196a390585d3@example.com"
     input_pcap = "pcaps/test_ul_5gb.tcpdump.radius.pcap"
     return pe.get_relevant_packets(input_pcap, username)
 
@@ -115,15 +115,33 @@ class TestAttributeChecks:
         assert max(all_input_octets) == pe.get_total_input_octets(stop_packet)
         assert max(all_output_octets) == pe.get_total_output_octets(stop_packet)
 
-    @pytest.mark.skip(reason="not implemented yet")
-    def test_at_least_three_class_echoed(self, large_download_pcap):
+    def test_at_least_three_class_echoed(self, large_upload_pcap):
         """At least 3 Class attributes are echoed."""
-        pass
+        accept_packets = pe.get_accept_packets(large_upload_pcap)
+        assert len(accept_packets) == 1
+        classes_accept_packet = pe.get_values_for_attribute(accept_packets[0], 25)
+        acct_req_packets = pe.get_packets_by_codes(large_upload_pcap, 4)
+        # Go through each accounting packet and check if at least 3 classes are echoed
+        for acct_packet in acct_req_packets:
+            class_count = 0
+            classes_acct_packet = pe.get_values_for_attribute(acct_packet, 25)
+            for _class in classes_accept_packet:
+                if _class in classes_acct_packet:
+                    class_count += 1
+            assert class_count >= 3
 
-    @pytest.mark.skip(reason="not implemented yet")
-    def test_cui_echoed(self, large_download_pcap):
+    def test_cui_echoed(self, large_upload_pcap):
         """Persistent CUI is echoed."""
-        pass
+        accept_packets = pe.get_accept_packets(large_upload_pcap)
+        assert len(accept_packets) == 1
+        cui_accept_packet = pe.get_values_for_attribute(accept_packets[0], 89)
+        assert len(cui_accept_packet) == 1
+        cui_to_look_for = cui_accept_packet[0]
+        acct_req_packets = pe.get_packets_by_codes(large_upload_pcap, 4)
+        # Go through each accounting packet and check if CUI is echoed
+        for acct_packet in acct_req_packets:
+            cui_acct_packet = pe.get_values_for_attribute(acct_packet, 89)
+            assert cui_to_look_for in cui_acct_packet
 
     def __verify_usage_increasing(self, packets, octet_func: Callable):
         total_usage = 0
