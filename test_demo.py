@@ -130,7 +130,7 @@ class TestAttributeChecks:
         stop_packets = pe.get_stop_packets(packets)
         update_packets = pe.get_update_packets(packets)
         rel_packets = update_packets + stop_packets
-        #Verify total usage is increasing.
+        # Verify total usage is increasing.
         for packet in rel_packets:
             prev_total_usage = total_usage
             total_usage = octet_func(packet)
@@ -138,12 +138,12 @@ class TestAttributeChecks:
 
     def test_in_gigaword_rolls_over(self, large_download_pcap):
         """Acct-Input-Gigaword rolls over."""
-        #Verify gigaword rollover by checking that the total usage is increasing.
+        # Verify gigaword rollover by checking that the total usage is increasing.
         self.__verify_usage_increasing(large_download_pcap, pe.get_total_output_octets)
 
     def test_out_gigaword_rolls_over(self, large_upload_pcap):
         """Acct-Output-Gigaword rolls over."""
-        #Verify gigaword rollover by checking that the total usage is increasing.
+        # Verify gigaword rollover by checking that the total usage is increasing.
         self.__verify_usage_increasing(large_upload_pcap, pe.get_total_input_octets)
 
 
