@@ -4,6 +4,7 @@ import argparse
 from raatest import get_chunks
 from raatest import DEFAULT_LOGS_DIR
 from raatest import DEFAULT_PCAP_DIR
+from raatest import DEFAULT_CHUNK_SIZE
 
 # TODO: Add user interface to setup and control test
 
@@ -14,6 +15,7 @@ def parse_args():
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--logs_dir", type=str, default=DEFAULT_LOGS_DIR)
     parser.add_argument("--pcap_dir", type=str, default=DEFAULT_PCAP_DIR)
+    parser.add_argument("--chunk_size", type=int, default=DEFAULT_CHUNK_SIZE)
     return parser.parse_args()
 
 
@@ -28,18 +30,20 @@ def setup_logging(debug):
 
 def main():
     args = parse_args()
-    # arg_vars = vars(parse_args())
+    arg_vars = vars(parse_args())
     setup_logging(args.debug)
 
     # TODO: Add user interface to select values
 
     # logs_dir = arg_vars["logs_dir"]
     # pcap_dir = arg_vars["pcap_dir"]
+    chunk_size = arg_vars["chunk_size"]
 
     # upload test
     get_chunks(
         test_name="test_ul_5gb",
-        chunks=5 * 1024,
+        chunks=100,
+        data_chunk_size=chunk_size,
         data_server_ip="192.168.123.1",
         data_server_port=8001,
         data_server_listen_port=8000,

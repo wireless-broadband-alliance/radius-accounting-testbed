@@ -145,7 +145,7 @@ def get_chunks(
     data_server_listen_port=None,
     chunks=1,
     ssid="raatest",
-    data_chunk_size=1024**2,
+    data_chunk_size=DEFAULT_CHUNK_SIZE,
     logs_dir=DEFAULT_LOGS_DIR,
     pcap_dir=DEFAULT_PCAP_DIR,
     debug=False,
