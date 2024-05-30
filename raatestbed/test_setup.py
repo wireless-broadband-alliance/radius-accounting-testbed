@@ -1,9 +1,9 @@
-import processes as procs
 import time
 import os
 import logging
 import psutil
-from data_transfer import TCPServer, get_data_chunk
+import raatestbed.processes as procs
+from raatestbed.data_transfer import TCPServer, get_data_chunk
 
 
 DEFAULT_ROOT_DIR = "/usr/local/raa"
@@ -12,6 +12,7 @@ DEFAULT_PCAP_DIR = os.path.join(DEFAULT_ROOT_DIR, "pcap")
 DEFAULT_WIRELESS_IFACE = "wlan0"
 DEFAULT_WIRED_IFACE = "eth0"
 DEFAULT_CHUNK_SIZE = 1024**2
+DEFAULT_SSID = "raatest"
 
 
 def create_dir_if_not_exists(directory):
@@ -21,13 +22,13 @@ def create_dir_if_not_exists(directory):
         os.makedirs(directory)
 
 
-class RAATest:
+class TestSetup:
     """Class that contains common methods and attributes for all tests."""
 
     def __init__(
         self,
         test_name,
-        ssid,
+        ssid=DEFAULT_SSID,
         wireless_interface=DEFAULT_WIRELESS_IFACE,
         wired_interface=DEFAULT_WIRED_IFACE,
         data_server_port=8000,
@@ -152,7 +153,7 @@ def get_chunks(
 ):
     if data_server_listen_port is None:
         data_server_listen_port = data_server_port
-    test = RAATest(
+    test = TestSetup(
         test_name=test_name,
         ssid=ssid,
         data_server_port=data_server_listen_port,
