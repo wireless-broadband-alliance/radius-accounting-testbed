@@ -16,13 +16,18 @@ from raatestbed.test_setup import DEFAULT_WIRED_IFACE
 # TODO: too many arguments, maybe use a config file
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("test_name", help="Name of the test to run")
-    parser.add_argument("data_server_ip", help="IP of the server to get data from")
-    parser.add_argument("data_server_port", help="Port of the server to get data from")
+    parser.add_argument("test_name", type=str, help="Name of the test to run")
+    parser.add_argument(
+        "data_server_ip", type=str, help="IP of the server to get data from"
+    )
+    parser.add_argument(
+        "data_server_port", type=int, help="Port of the server to get data from"
+    )
     parser.add_argument(
         "--interface", type=str, default="wlan0", help="Interface used to get data from"
     )
     parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--data_server_listen_port", type=str, default=8000)
     parser.add_argument("--logs_dir", type=str, default=DEFAULT_LOGS_DIR)
     parser.add_argument("--pcap_dir", type=str, default=DEFAULT_PCAP_DIR)
     parser.add_argument("--chunk_size", type=int, default=DEFAULT_CHUNK_SIZE)
@@ -54,7 +59,7 @@ def main():
     test = TestSetup(
         test_name=args["test_name"],
         ssid=args["ssid"],
-        data_server_port=args["data_server_port"],
+        data_server_port=args["data_server_listen_port"],
         data_chunk_size=args["chunk_size"],
         logs_dir=args["logs_dir"],
         pcap_dir=args["pcap_dir"],
