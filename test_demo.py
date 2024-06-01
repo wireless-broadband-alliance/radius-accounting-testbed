@@ -1,8 +1,10 @@
-import pcap_extract as pe
+import raatestbed.pcap_extract as pe
 from scapy.all import Radius
 from typing import List, Callable, Tuple
 import logging
 import pytest
+from glob import glob
+import os
 # from IPython import embed
 
 
@@ -233,3 +235,25 @@ class TestAccuracyChecks:
         output_packets_attributes = pe.get_acct_output_packets(packet)
         assert len(output_packets_attributes) == 1
         assert output_packets_attributes[0] > 0
+
+
+def get_pcap_and_metadata(test_name, pcap_dir) -> Tuple[str, str]:
+    """Return PCAP and metadata files for a given test name."""
+    pcaps = glob(os.path.join(pcap_dir, f"{test_name}*.pcap"))
+    metadata = glob(os.path.join(pcap_dir, f"{test_name}*.metadata.json"))
+    # Check if there is exactly one PCAP and one metadata file, raise error otherwise
+    if len(pcaps) != 1 or len(metadata) != 1:
+        pcaps_str = ", ".join(pcaps)
+        metadata_str = ", ".join(metadata)
+        raise ValueError(
+            f"Incorrect number of PCAPs or metadata files found....pcaps: {pcaps_str}, metadata: {metadata_str}"
+        )
+    return pcaps[0], metadata[0]
+
+
+if __name__ == "__main__":
+    test_name = "test1"
+    pcap_dir = "/usr/local/raa/pcap"
+    pcap, metadata = get_pcap_and_metadata(test_name, pcap_dir)
+
+    # pytest.main()
