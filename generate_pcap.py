@@ -1,6 +1,8 @@
 import logging
 import argparse
 import time
+import json
+import os
 
 from raatestbed.data_transfer import get_data_chunk
 from raatestbed.test_setup import TestSetup
@@ -14,7 +16,7 @@ from raatestbed.test_setup import DEFAULT_WIRED_IFACE
 
 
 # TODO: too many arguments, maybe use a config file
-def parse_args():
+def parse_cliargs():
     parser = argparse.ArgumentParser()
     parser.add_argument("test_name", type=str, help="Name of the test to run")
     parser.add_argument(
@@ -49,40 +51,64 @@ def setup_logging(debug):
         logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
 
-def main():
-    args_orig = parse_args()
-    args = vars(parse_args())
-    setup_logging(args_orig.debug)
+def generate_pcap(cliargs):
+    """Run end-to-end test and generate PCAP + PCAP metadata."""
+    test_metadata = dict()
 
-    # TODO: Add user interface to select values
-
+    # Initialize test for PCAP generation.
+    test_name = cliargs["test_name"]
     test = TestSetup(
-        test_name=args["test_name"],
-        ssid=args["ssid"],
-        data_server_port=args["data_server_listen_port"],
-        data_chunk_size=args["chunk_size"],
-        logs_dir=args["logs_dir"],
-        pcap_dir=args["pcap_dir"],
-        debug=args["debug"],
-        wireless_interface=args["wireless_interface"],
-        wired_interface=args["wired_interface"],
+        test_name=test_name,
+        ssid=cliargs["ssid"],
+        data_server_port=cliargs["data_server_listen_port"],
+        data_chunk_size=cliargs["chunk_size"],
+        logs_dir=cliargs["logs_dir"],
+        pcap_dir=cliargs["pcap_dir"],
+        debug=cliargs["debug"],
+        wireless_interface=cliargs["wireless_interface"],
+        wired_interface=cliargs["wired_interface"],
     )
+
+    # Start test for PCAP generation.
     test.start()
-    time.sleep(2)
-    chunks = args["chunks"]
-    logging.info(f"pulling {chunks} chunks")
     begin = time.perf_counter()
+    time.sleep(2)
+
+    # Start data transfer.
+    chunks = cliargs["chunks"]
+    logging.info(f"pulling {chunks} chunks")
     for num in range(chunks):
         logging.info(f"pulling chunk {num+1} of {chunks}")
         get_data_chunk(
-            server_host=args["data_server_ip"],
-            server_port=args["data_server_port"],
-            chunk_size=args["chunk_size"],
-            iface=args["interface"],
+            server_host=cliargs["data_server_ip"],
+            server_port=cliargs["data_server_port"],
+            chunk_size=cliargs["chunk_size"],
+            iface=cliargs["interface"],
         )
+
+    # Data transfer completed, stop test.
     end = time.perf_counter()
-    logging.info(f"Download completed in {end - begin:.2f} seconds")
+    duration = end - begin
+    logging.info(f"Download completed in {duration:.2f} seconds")
     test.stop()
+
+    # Write test metadata to file.
+    filename = f"{test_name}.metadata.json"
+    filename_withdir = os.path.join(cliargs["pcap_dir"], filename)
+    test_metadata["username"] = test.username
+    test_metadata["data_transfer_time"] = int(duration)
+    logging.info(f'Writing metadata to file "{filename}"')
+    with open(filename_withdir, "w") as f:
+        json.dump(test_metadata, f)
+
+
+def main():
+    # Parse command line arguments and set up logging.
+    cliargs_orig = parse_cliargs()
+    cliargs = vars(parse_cliargs())
+    setup_logging(cliargs_orig.debug)
+
+    generate_pcap(cliargs)
 
 
 if __name__ == "__main__":

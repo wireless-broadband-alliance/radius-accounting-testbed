@@ -54,7 +54,6 @@ class TestSetup:
         self.wpasupplicant = None
         self.data_server = None
         self.radius_tcpdump = None
-        self.proc_objs = None
 
     def __check_for_ip(self):
         """Check if network interface has IP"""
@@ -98,22 +97,24 @@ class TestSetup:
             log_location=self.freeradius_log, debug=self.debug
         )
         self.data_server = TCPServer(self.data_server_port, self.data_chunk_size)
-        self.proc_objs = (
-            self.radius_tcpdump,
-            self.wpasupplicant,
-            self.freeradius,
-            self.data_server,
-        )
+
+        self.username = self.wpasupplicant.get_username()
 
     def start(self, wait_for_ip=True, extra_wait_time=3):
         """Start processes"""
         self.stop()
         self.__initialize_proc_objs()
-        assert self.proc_objs is not None
         logging.info(f'Starting test "{self.test_name}"...')
-        for proc in self.proc_objs:
+
+        def start_proc(proc):
             assert proc is not None
             proc.start()
+
+        start_proc(self.radius_tcpdump)
+        start_proc(self.freeradius)
+        start_proc(self.data_server)
+        start_proc(self.wpasupplicant)
+
         if wait_for_ip:
             # Block until wireless interface has IP
             logging.info(f"Waiting for IP on {self.wireless_interface}...")

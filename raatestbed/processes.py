@@ -90,7 +90,9 @@ class WpaSupplicant(Command):
         ]
         super().__init__("wpa_supplicant", cmd, self.log_location, self.wait_time)
 
-    def get_username(self):
+    def get_username(self) -> str:
+        if self.username is None:
+            return ""
         return self.username
 
     def __get_wpa_supplicant_conf(
