@@ -76,7 +76,9 @@ def generate_pcap(cliargs):
 
     # Start data transfer.
     chunks = cliargs["chunks"]
+    chunk_size = cliargs["chunk_size"]
     logging.info(f"pulling {chunks} chunks")
+    begin_data_transfer = time.perf_counter()
     for num in range(chunks):
         logging.info(f"pulling chunk {num+1} of {chunks}")
         get_data_chunk(
@@ -88,16 +90,19 @@ def generate_pcap(cliargs):
 
     # Data transfer completed, stop test.
     end = time.perf_counter()
-    duration = end - begin
-    logging.info(f"Download completed in {duration:.2f} seconds")
+    session_duration = end - begin
+    data_transfer_duration = end - begin_data_transfer
+    logging.info(f"Download completed in {data_transfer_duration:.2f} seconds")
     test.stop()
 
     # Write test metadata to file.
     filename = f"{test_name}.metadata.json"
     filename_withdir = os.path.join(cliargs["pcap_dir"], filename)
     test_metadata["username"] = test.username
-    test_metadata["data_transfer_time"] = int(duration)
-    logging.info(f'Writing metadata to file "{filename}"')
+    test_metadata["session_duration"] = int(session_duration)
+    test_metadata["chunk_size"] = chunk_size
+    test_metadata["chunks"] = chunks
+    logging.info(f'Writing metadata to file "{filename_withdir}"')
     with open(filename_withdir, "w") as f:
         json.dump(test_metadata, f)
 
