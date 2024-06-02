@@ -7,6 +7,18 @@ from typing import Tuple, List
 from glob import glob
 from scapy.all import Radius
 
+from dataclasses import asdict, dataclass
+
+
+@dataclass
+class Metadata:
+    """Metadata for a test."""
+
+    username: str
+    session_duration: str
+    chunk_size: str
+    chunks: str
+
 
 def pytest_addoption(parser):
     parser.addoption(
@@ -23,30 +35,50 @@ def pytest_addoption(parser):
     )
 
 
-def get_pcap_and_metadata(test_name, pcap_dir) -> Tuple[str, str]:
-    """Return PCAP and metadata files for a given test name."""
-    pcaps = glob(os.path.join(pcap_dir, f"{test_name}*.pcap"))
+def get_metadata_loc(test_name, pcap_dir) -> str:
+    """Return metadata file path for a given test name."""
     metadata = glob(os.path.join(pcap_dir, f"{test_name}*.metadata.json"))
     # Check if there is exactly one PCAP and one metadata file, raise error otherwise
-    if len(pcaps) != 1 or len(metadata) != 1:
-        pcaps_str = ", ".join(pcaps)
+    if len(metadata) != 1:
         metadata_str = ", ".join(metadata)
         raise ValueError(
-            f"Incorrect number of PCAPs or metadata files found....pcaps: {pcaps_str}, metadata: {metadata_str}"
+            f"Incorrect number of metadata files found....metadata: {metadata_str}"
         )
-    return pcaps[0], metadata[0]
+    return metadata[0]
+
+
+def get_pcap_loc(test_name, pcap_dir) -> str:
+    """Return PCAP file path for a given test name."""
+    pcaps = glob(os.path.join(pcap_dir, f"{test_name}*.pcap"))
+    # Check if there is exactly one PCAP and one metadata file, raise error otherwise
+    if len(pcaps) != 1:
+        pcaps_str = ", ".join(pcaps)
+        raise ValueError(f"Incorrect number of PCAP files found....PCAPs: {pcaps_str}")
+    return pcaps[0]
+
+
+def get_metadata(test_name, pcap_dir) -> Metadata:
+    metadata_loc = get_metadata_loc(test_name, pcap_dir)
+    with open(metadata_loc) as f:
+        metadata_dict = json.load(f)
+    return Metadata(**metadata_dict)
 
 
 @pytest.fixture
-def testdata(request) -> Tuple[List[Radius], dict]:
-
-@pytest.fixture
-def testdata(request) -> Tuple[List[Radius], dict]:
+def metadata(request) -> Metadata:
+    """Return metadata for a given test name."""
     test_name = request.config.getoption("--test_name")
     directory = request.config.getoption("--pcap_dir")
-    pcap_loc, metadata_loc = get_pcap_and_metadata(test_name, directory)
-    with open(metadata_loc) as f:
-        metadata = json.load(f)
-    username = metadata["username"]
+    return get_metadata(test_name, directory)
+
+
+@pytest.fixture
+def packets(request) -> List[Radius]:
+    """Return relevant packets from PCAP file."""
+    test_name = request.config.getoption("--test_name")
+    directory = request.config.getoption("--pcap_dir")
+    metadata = get_metadata(test_name, directory)
+    username = metadata.username
+    pcap_loc = get_pcap_loc(test_name, directory)
     pcap = pe.get_relevant_packets(pcap_loc, username)
-    return pcap, metadata
+    return pcap
