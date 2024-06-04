@@ -1,26 +1,34 @@
 # Self-Certification Test Bed for WBA RADIUS Accounting Assurance Project
 This is a self-certification test bed for the WBA RADIUS Accounting Assurance Project.
 
-## Markers
-Markers are used to categorize the tests. The following markers are used:
+## Overview
+This test bed is designed to run a series of RADIUS tests from a range of categories (see below). The focus of the tests is to verify that the RADIUS-based NAS is compliant with the RADIUS protocol and conforms to best practices. However, the primary goal of this test bed is to verify the usage data reported in accounting is accurate.
 
-| Marker    | Description |
-| -------- | ------- |
-| core | Basic RADIUS tests for RFC compliance |
-| core-upload | Basic RADIUS tests for file upload |
-| core-download | Basic RADIUS tests for file download |
-| openroaming | OpenRoaming tests |
 
 ## Basic Operation
 This test bed will do the following:
 
 1. Control an end-to-end 802.1X/RADIUS authentication+accounting test, running a packet capture in the process.
 2. Get supplicant to transfer a large amount of data.
-3. Extract fields from the RADIUS packet capture to run a series of accounting tests (see below for test cases).
+3. Extract fields from the RADIUS packet capture (PCAP) to run a series of accounting tests. See below for test cases.
+
+## Markers
+Markers are used to specify the tests to run against the PCAP. The following markers are currently used:
+
+| Test Category    | Marker | Description |
+| -------- | -------- | ------- |
+| core | `core` | Basic RADIUS tests for RFC compliance |
+| core | `core-upload` | Basic RADIUS tests for file upload |
+| core | `core-download` | Basic RADIUS tests for file download |
+| openroaming | `openroaming` | OpenRoaming tests |
+
 
 ## Test Cases
 ### Attribute Checks
-Purpose is to test behavior a presence of attributes
+#### Core Tests
+Purpose is check RFC compliance through attributes.
+
+Markers: `core`, `core-upload`, `core-download`
 
 #### Test Cases for Attribute Checks
 
