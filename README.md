@@ -1,11 +1,23 @@
 # Self-Certification Test Bed for WBA RADIUS Accounting Assurance Project
 This is a self-certification test bed for the WBA RADIUS Accounting Assurance Project.
+
+## Markers
+Markers are used to categorize the tests. The following markers are used:
+
+| Marker    | Description |
+| -------- | ------- |
+| core | Basic RADIUS tests for RFC compliance |
+| core-upload | Basic RADIUS tests for file upload |
+| core-download | Basic RADIUS tests for file download |
+| openroaming | OpenRoaming tests |
+
 ## Basic Operation
 This test bed will do the following:
 
 1. Control an end-to-end 802.1X/RADIUS authentication+accounting test, running a packet capture in the process.
 2. Get supplicant to transfer a large amount of data.
 3. Extract fields from the RADIUS packet capture to run a series of accounting tests (see below for test cases).
+
 ## Test Cases
 ### Attribute Checks
 Purpose is to test behavior a presence of attributes
@@ -61,6 +73,7 @@ pip install -r requirements.txt
 
 Run Pytest:
 ```bash
-pytest -v -k .
+pytest -v -k -m <marker_name> raatests
 ```
+where `<marker_name>` is the marker name (e.g., `core`, `core-upload`, `core-download`, `openroaming`).
 
