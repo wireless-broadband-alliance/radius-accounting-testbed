@@ -74,6 +74,7 @@ def pytest_configure(config):
 
 
 def get_metadata(test_name, pcap_dir) -> Metadata:
+    """Convert metadata JSON file to Metadata object."""
     metadata_loc = get_metadata_loc(test_name, pcap_dir)
     with open(metadata_loc) as f:
         metadata_dict = json.load(f)
