@@ -71,7 +71,13 @@ def get_values_for_attribute(
     field_values = []
     for attribute in packet.attributes:
         fields = attribute.fields
-        if (fields.get("type") == _type) & (fields.get("vendor") == vendor):
+        if (fields.get("type") == _type) & (fields.get("vendor_id") is None):
+            field_values.append(attribute.value)
+        elif (
+            (fields.get("type") == 26)
+            & (fields.get("vendor_id") == vendor)
+            & (fields.get("vendor_type") == _type)
+        ):
             field_values.append(attribute.value)
     return field_values
 
