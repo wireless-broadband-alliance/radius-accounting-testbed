@@ -68,12 +68,17 @@ def pytest_configure(config):
     """Do preliminary checks to ensure there are PCAP and metadata files before test execution."""
     test_name = config.getoption("--test_name")
     pcap_dir = config.getoption("--pcap_dir")
+    config.addinivalue_line("markers", "core: basic tests")
+    config.addinivalue_line("markers", "core_upload: basic tests for upload")
+    config.addinivalue_line("markers", "core_download: basic tests for download")
+    config.addinivalue_line("markers", "openroaming: openroaming tests")
     # These functions will raise errors if the files are not found
     _ = get_metadata_loc(test_name, pcap_dir)
     _ = get_pcap_loc(test_name, pcap_dir)
 
 
 def get_metadata(test_name, pcap_dir) -> Metadata:
+    """Convert metadata JSON file to Metadata object."""
     metadata_loc = get_metadata_loc(test_name, pcap_dir)
     with open(metadata_loc) as f:
         metadata_dict = json.load(f)

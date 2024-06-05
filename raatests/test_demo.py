@@ -2,6 +2,7 @@ import raatestbed.pcap_extract as pe
 from scapy.all import Radius
 from typing import List, Callable, Tuple
 import logging
+import pytest
 
 
 # TODO: Possibly change test library
@@ -9,6 +10,7 @@ import logging
 
 
 class TestAttributeChecks:
+    @pytest.mark.core
     def test_unique_persistent_acct_session_id(self, packets):
         """Unique and persistent Acct-Session-Id in accounting sessions."""
         # Get all Acct-Session-Id values from the packets, then check if there is only one unique value.
@@ -24,6 +26,7 @@ class TestAttributeChecks:
         # Account-Session-Id looks unique
         assert len(session_id) > 5
 
+    @pytest.mark.core
     def test_acct_session_id_auth_acct(self, packets):
         """Acct-Session-Id is persistent in authentication and accounting sessions."""
         acct_session_ids = []
@@ -33,6 +36,7 @@ class TestAttributeChecks:
         # Each packet has an Acct-Session-Id
         assert len(req_packets) == len(acct_session_ids)
 
+    @pytest.mark.core
     def test_start_update_stop_present(self, packets):
         """Start, Update, and Stop records are present in accounting session."""
         start_packets = pe.get_start_packets(packets)
@@ -43,6 +47,7 @@ class TestAttributeChecks:
         assert len(start_packets) == 1
         assert len(update_packets) >= 0
 
+    @pytest.mark.core
     def test_stop_record_last_message(self, packets):
         """Stop record is last message in accounting session."""
         latest_packet = pe.get_latest_radius_packet(packets)
@@ -52,6 +57,7 @@ class TestAttributeChecks:
         # Acct-Status-Type is Stop (2)
         assert latest_packet_acct_status_type[0] == 2
 
+    @pytest.mark.core
     def test_stop_record_highest_usage(self, packets):
         """Stop record contains highest usage fields."""
         stop_packets = pe.get_stop_packets(packets)
@@ -73,6 +79,7 @@ class TestAttributeChecks:
         assert max(all_input_octets) == pe.get_total_input_octets(stop_packet)
         assert max(all_output_octets) == pe.get_total_output_octets(stop_packet)
 
+    @pytest.mark.core
     def test_at_least_three_class_echoed(self, packets):
         """At least 3 Class attributes are echoed."""
         accept_packets = pe.get_accept_packets(packets)
@@ -88,6 +95,7 @@ class TestAttributeChecks:
                     class_count += 1
             assert class_count >= 3
 
+    @pytest.mark.core
     def test_cui_echoed(self, packets):
         """Persistent CUI is echoed."""
         accept_packets = pe.get_accept_packets(packets)
@@ -112,11 +120,13 @@ class TestAttributeChecks:
             total_usage = octet_func(packet)
             assert total_usage >= prev_total_usage
 
+    @pytest.mark.core_upload
     def test_in_gigaword_rolls_over(self, packets):
         """Acct-Input-Gigaword rolls over."""
         # Verify gigaword rollover by checking that the total usage is increasing.
         self.__verify_usage_increasing(packets, pe.get_total_output_octets)
 
+    @pytest.mark.core_download
     def test_out_gigaword_rolls_over(self, packets):
         """Acct-Output-Gigaword rolls over."""
         # Verify gigaword rollover by checking that the total usage is increasing.
@@ -147,11 +157,13 @@ class TestAccuracyChecks:
         total_octets = octet_func(packet)
         assert expected_octets_low <= total_octets <= expected_octets_high
 
+    @pytest.mark.core_upload
     def test_input_tonnage_accuracy(self, packets, metadata):
         """Input tonnage is accurate."""
         large_upload_octets = metadata.chunks * metadata.chunk_size
         self.__tonnage_accuracy(large_upload_octets, packets, pe.get_total_input_octets)
 
+    @pytest.mark.core_download
     def test_output_tonnage_accuracy(self, packets, metadata):
         """Output tonnage is accurate."""
         large_download_octets = metadata.chunks * metadata.chunk_size
@@ -159,6 +171,7 @@ class TestAccuracyChecks:
             large_download_octets, packets, pe.get_total_output_octets
         )
 
+    @pytest.mark.core
     def test_session_duration_accuracy(self, packets, metadata):
         """Session duration is accurate."""
         tolerance = 0.05
@@ -173,6 +186,7 @@ class TestAccuracyChecks:
             <= session_time_upper_bound
         )
 
+    @pytest.mark.core
     def test_input_packet_count_nonzero(self, packets):
         """Input Packet count is non-zero."""
         stop_update_packet = self.__get_stop_or_update_packets(packets)
@@ -180,6 +194,7 @@ class TestAccuracyChecks:
         assert len(input_packets_attributes) == 1
         assert input_packets_attributes[0] > 0
 
+    @pytest.mark.core
     def test_output_packet_count_nonzero(self, packets):
         """Output Packet count is non-zero."""
         packet = self.__get_stop_or_update_packets(packets)
