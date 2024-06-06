@@ -131,7 +131,7 @@ def select_markers():
     ]
     selected_options = [option for option in selected_options if option]
 
-    return ",".join(selected_options)
+    return ", ".join(selected_options), " or ".join(selected_options)
 
 
 def user_wants_to_continue(prompt_message):
@@ -159,11 +159,10 @@ def main():
     test_name = cliargs["test_name"]
     metadata = get_metadata(test_name, cliargs["pcap_dir"])
     logging.info(f'\n\nMetadata for "{test_name}":\n{metadata.pretty_print_format()}\n')
-    markers = select_markers()
-    print(markers)
+    markers_txt, markers = select_markers()
     pytest_args = ["-v", "raatests", "--test_name", test_name]
     extra_args = ["-m", markers]
-    if user_wants_to_continue(f'Running test suites "{markers}"'):
+    if user_wants_to_continue(f'Running test suites "{markers_txt}"'):
         pytest.main(pytest_args + extra_args)
 
 
