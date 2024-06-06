@@ -14,6 +14,8 @@ from raatestbed.test_setup import DEFAULT_SSID
 from raatestbed.test_setup import DEFAULT_WIRELESS_IFACE
 from raatestbed.test_setup import DEFAULT_WIRED_IFACE
 
+from raatests.extra_funcs import get_metadata
+
 
 # TODO: too many arguments, maybe use a config file
 def parse_cliargs():
@@ -113,6 +115,9 @@ def main():
     setup_logging(cliargs_orig.debug)
 
     generate_pcap(cliargs)
+    test_name = cliargs["test_name"]
+    metadata = get_metadata(test_name, cliargs["pcap_dir"])
+    logging.info(f'\n\nMetadata for "{test_name}":\n{metadata.pretty_print_format()}\n')
 
 
 if __name__ == "__main__":
