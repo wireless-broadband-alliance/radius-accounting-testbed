@@ -1,7 +1,7 @@
 import time
 import os
 import logging
-import psutil
+import subprocess
 import raatestbed.processes as procs
 from raatestbed.data_transfer import TCPServer, get_data_chunk
 
@@ -57,12 +57,16 @@ class TestSetup:
 
     def __check_for_ip(self):
         """Check if network interface has IP"""
-        addrs = psutil.net_if_addrs()
-        if self.wireless_interface not in addrs:
+        result = subprocess.run(
+            ["ip", "addr", "show", self.wireless_interface],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        if "inet " in result.stdout:
+            return True
+        else:
             return False
-        if not addrs[self.wireless_interface]:
-            return False
-        return True
 
     def __initialize_output_locations(self):
         """Initialize output locations for logs and pcap files"""
@@ -119,8 +123,10 @@ class TestSetup:
             # Block until wireless interface has IP
             logging.info(f"Waiting for IP on {self.wireless_interface}...")
             while not self.__check_for_ip():
-                pass
+                time.sleep(0.05)
+        start_time = time.perf_counter()  # start counter after IP given
         time.sleep(extra_wait_time)  # wait for network to settle
+        return start_time
 
     def stop(self):
         """Stop all processes"""

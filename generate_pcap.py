@@ -70,8 +70,7 @@ def generate_pcap(cliargs):
     )
 
     # Start test for PCAP generation.
-    test.start()
-    begin = time.perf_counter()
+    begin = test.start()
     time.sleep(2)
 
     # Start data transfer.
