@@ -3,6 +3,7 @@ import argparse
 import time
 import json
 import os
+import pytest
 
 from raatestbed.data_transfer import get_data_chunk
 from raatestbed.test_setup import TestSetup
@@ -13,6 +14,8 @@ from raatestbed.test_setup import DEFAULT_CHUNK_SIZE
 from raatestbed.test_setup import DEFAULT_SSID
 from raatestbed.test_setup import DEFAULT_WIRELESS_IFACE
 from raatestbed.test_setup import DEFAULT_WIRED_IFACE
+
+from raatests.extra_funcs import get_metadata
 
 
 # TODO: too many arguments, maybe use a config file
@@ -70,8 +73,7 @@ def generate_pcap(cliargs):
     )
 
     # Start test for PCAP generation.
-    test.start()
-    begin = time.perf_counter()
+    begin = test.start()
     time.sleep(2)
 
     # Start data transfer.
@@ -107,13 +109,61 @@ def generate_pcap(cliargs):
         json.dump(test_metadata, f)
 
 
+def select_markers():
+    """Select markers from a list."""
+
+    # TODO: These should be generated dynamically
+    options_mapping = {
+        "1": "core",
+        "2": "core_download",
+        "3": "core_upload",
+        "4": "openroaming",
+    }
+    print("\nSelect tests suite(s) from the list:")
+    for key, value in options_mapping.items():
+        print(f"{key}) {value}")
+    print("")
+
+    selected_options = []
+    user_input = input("Enter your options (comma-separated numbers): ")
+    selected_options = [
+        options_mapping.get(choice.strip(), "") for choice in user_input.split(",")
+    ]
+    selected_options = [option for option in selected_options if option]
+
+    return ", ".join(selected_options), " or ".join(selected_options)
+
+
+def user_wants_to_continue(prompt_message):
+    user_input = input(f"{prompt_message} (yes/no): ").strip().lower()
+
+    if user_input == "yes":
+        return True
+    elif user_input == "no":
+        return False
+    else:
+        print("Invalid input. Please enter 'yes' or 'no'.")
+        return user_wants_to_continue(prompt_message)
+
+
 def main():
     # Parse command line arguments and set up logging.
     cliargs_orig = parse_cliargs()
     cliargs = vars(parse_cliargs())
     setup_logging(cliargs_orig.debug)
 
+    # Generate PCAP.
     generate_pcap(cliargs)
+
+    # Run tests against PCAP.
+    test_name = cliargs["test_name"]
+    metadata = get_metadata(test_name, cliargs["pcap_dir"])
+    logging.info(f'\n\nMetadata for "{test_name}":\n{metadata.pretty_print_format()}\n')
+    markers_txt, markers = select_markers()
+    pytest_args = ["-v", "raatests", "--test_name", test_name]
+    extra_args = ["-m", markers]
+    if user_wants_to_continue(f'Running test suites "{markers_txt}"'):
+        pytest.main(pytest_args + extra_args)
 
 
 if __name__ == "__main__":

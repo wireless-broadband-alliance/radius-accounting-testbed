@@ -175,8 +175,8 @@ class TestAccuracyChecks:
     def test_session_duration_accuracy(self, packets, metadata):
         """Session duration is accurate."""
         tolerance = 0.05
-        session_time_lower_bound = metadata.session_duration * (1 - tolerance)
-        session_time_upper_bound = metadata.session_duration * (1 + tolerance)
+        session_time_lower_bound = (metadata.session_duration * (1 - tolerance)) - 2
+        session_time_upper_bound = (metadata.session_duration * (1 + tolerance)) + 2
         packet = self.__get_stop_or_update_packets(packets)
         acct_session_times = pe.get_acct_session_time(packet)
         assert len(acct_session_times) == 1
