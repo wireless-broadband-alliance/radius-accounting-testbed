@@ -29,19 +29,51 @@ def parse_cliargs():
         "data_server_port", type=int, help="Port of the server to get data from"
     )
     parser.add_argument(
-        "--interface", type=str, default="wlan0", help="Interface used to get data from"
+        "--interface",
+        type=str,
+        default=DEFAULT_WIRELESS_IFACE,
+        help=f"Interface used to get data from (default: {DEFAULT_WIRELESS_IFACE})",
     )
     parser.add_argument("--debug", action="store_true")
-    parser.add_argument("--data_server_listen_port", type=str, default=8000)
-    parser.add_argument("--logs_dir", type=str, default=DEFAULT_LOGS_DIR)
-    parser.add_argument("--pcap_dir", type=str, default=DEFAULT_PCAP_DIR)
-    parser.add_argument("--chunk_size", type=int, default=DEFAULT_CHUNK_SIZE)
-    parser.add_argument("--chunks", type=int, default=1)
-    parser.add_argument("--ssid", type=str, default=DEFAULT_SSID)
     parser.add_argument(
-        "--wireless_interface", type=str, default=DEFAULT_WIRELESS_IFACE
+        "--data_server_listen_port", type=str, default=8000, help="default: 8000"
     )
-    parser.add_argument("--wired_interface", type=str, default=DEFAULT_WIRED_IFACE)
+    parser.add_argument(
+        "--logs_dir",
+        type=str,
+        default=DEFAULT_LOGS_DIR,
+        help=f"default: {DEFAULT_LOGS_DIR}",
+    )
+    parser.add_argument(
+        "--pcap_dir",
+        type=str,
+        default=DEFAULT_PCAP_DIR,
+        help=f"default: {DEFAULT_PCAP_DIR}",
+    )
+    parser.add_argument(
+        "--chunk_size",
+        type=int,
+        default=DEFAULT_CHUNK_SIZE,
+        help=f"default: {DEFAULT_CHUNK_SIZE}",
+    )
+    parser.add_argument(
+        "--chunks", type=int, default=1, help="Number of chunks to pull, default: 1"
+    )
+    parser.add_argument(
+        "--ssid", type=str, default=DEFAULT_SSID, help=f"default: {DEFAULT_SSID}"
+    )
+    parser.add_argument(
+        "--wireless_interface",
+        type=str,
+        default=DEFAULT_WIRELESS_IFACE,
+        help=f"default: {DEFAULT_WIRELESS_IFACE}",
+    )
+    parser.add_argument(
+        "--wired_interface",
+        type=str,
+        default=DEFAULT_WIRED_IFACE,
+        help=f"default: {DEFAULT_WIRED_IFACE}",
+    )
     return parser.parse_args()
 
 
