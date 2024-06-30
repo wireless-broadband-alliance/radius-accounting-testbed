@@ -74,6 +74,10 @@ def parse_cliargs():
         default=DEFAULT_WIRED_IFACE,
         help=f"default: {DEFAULT_WIRED_IFACE}",
     )
+    parser.add_argument("--no_pcap", action="store_true", help="Skip PCAP generation")
+    parser.add_argument(
+        "--no_test", action="store_true", help="Skip test case execution"
+    )
     return parser.parse_args()
 
 
@@ -178,16 +182,8 @@ def user_wants_to_continue(prompt_message):
         return user_wants_to_continue(prompt_message)
 
 
-def main():
-    # Parse command line arguments and set up logging.
-    cliargs_orig = parse_cliargs()
-    cliargs = vars(parse_cliargs())
-    setup_logging(cliargs_orig.debug)
-
-    # Generate PCAP.
-    generate_pcap(cliargs)
-
-    # Run tests against PCAP.
+def execute_test_cases(cliargs):
+    """Run tests against PCAP."""
     test_name = cliargs["test_name"]
     metadata = get_metadata(test_name, cliargs["pcap_dir"])
     logging.info(f'\n\nMetadata for "{test_name}":\n{metadata.pretty_print_format()}\n')
@@ -196,6 +192,21 @@ def main():
     extra_args = ["-m", markers]
     if user_wants_to_continue(f'Running test suites "{markers_txt}"'):
         pytest.main(pytest_args + extra_args)
+
+
+def main():
+    # Parse command line arguments and set up logging.
+    cliargs_orig = parse_cliargs()
+    cliargs = vars(cliargs_orig)
+    setup_logging(cliargs_orig.debug)
+
+    # Generate PCAP.
+    if not cliargs["no_pcap"]:
+        generate_pcap(cliargs)
+
+    # Execute tests.
+    if not cliargs["no_test"]:
+        execute_test_cases(cliargs)
 
 
 if __name__ == "__main__":
