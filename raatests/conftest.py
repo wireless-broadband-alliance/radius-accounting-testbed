@@ -4,6 +4,7 @@ import os
 import sys
 from typing import List
 from scapy.all import Radius
+import logging
 from extra_funcs import get_metadata_loc, get_pcap_loc, get_metadata, Metadata
 from fpdf import FPDF
 
@@ -133,9 +134,9 @@ class CustomPDFReportPlugin:
 
         # Write PDF to file
         report_fullpath = os.path.join(report_dir, f"{test_name}_report.pdf")
-        print(f"Writing report to {report_fullpath}")
+        logging.info(f"Writing report to {report_fullpath}")
         pdf.output(report_fullpath)
-        print(f"Report written to {report_fullpath}")
+        logging.info(f"Report written to {report_fullpath}")
 
 
 def pytest_configure(config):
