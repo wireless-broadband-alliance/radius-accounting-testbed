@@ -117,8 +117,18 @@ class CustomPDFReportPlugin:
             context_list,
         ):
             pdf.cell(width_markers + whitespace, cell_height, marker, border=1)
-            pdf.cell(width_category + whitespace, cell_height, category, border=1)
-            pdf.cell(width_test_case + whitespace, cell_height, test_case, border=1)
+            pdf.cell(
+                width_category + whitespace,
+                cell_height,
+                category.replace("Test", ""),
+                border=1,
+            )
+            pdf.cell(
+                width_test_case + whitespace,
+                cell_height,
+                test_case.replace("test_", ""),
+                border=1,
+            )
 
             # Set color based on result, red=failed, green=passed
             if result.lower() == "passed":

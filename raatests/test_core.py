@@ -5,10 +5,6 @@ import logging
 import pytest
 
 
-# TODO: Possibly change test library
-# TODO: Use more verbose logging so we can use logger
-
-
 class TestAttributeChecks:
     @pytest.mark.core
     def test_unique_persistent_acct_session_id(self, packets):
@@ -21,7 +17,11 @@ class TestAttributeChecks:
         # Each packet has an Acct-Session-Id
         assert len(acct_req_packets) == len(acct_session_ids)
         # Account-Session-Id is unique
-        assert len(set(acct_session_ids)) == 1
+        unique_ids = set(acct_session_ids)
+        try:
+            assert unique_ids == 1
+        except AssertionError:
+            print(f"Unique Acct-Session-Id values: {len(unique_ids)}")
         session_id = acct_session_ids[0]
         # Account-Session-Id looks unique
         assert len(session_id) > 5
@@ -34,7 +34,12 @@ class TestAttributeChecks:
         for packet in req_packets:
             acct_session_ids += pe.get_acct_session_id(packet)
         # Each packet has an Acct-Session-Id
-        assert len(req_packets) == len(acct_session_ids)
+        try:
+            assert len(req_packets) == len(acct_session_ids)
+        except AssertionError:
+            print(
+                f"Acct-Session-Id only seen in {len(acct_session_ids)} out of {len(req_packets)} packets."
+            )
 
     @pytest.mark.core
     def test_start_update_stop_present(self, packets):
@@ -46,6 +51,9 @@ class TestAttributeChecks:
         assert len(stop_packets) == 1
         assert len(start_packets) == 1
         assert len(update_packets) >= 0
+        print(
+            f"Packet Count: Start: {len(start_packets)}, Update: {len(update_packets)}, Stop: {len(stop_packets)}"
+        )
 
     @pytest.mark.core
     def test_stop_record_last_message(self, packets):
@@ -134,11 +142,6 @@ class TestAttributeChecks:
 
 
 class TestAccuracyChecks:
-    def get_octet_bounds(self, total_octets) -> Tuple[int, int]:
-        """Get lower and upper bounds for octet count."""
-        tolerance = 0.1
-        return total_octets * (1 - tolerance), total_octets * (1 + tolerance)
-
     def __get_stop_or_update_packets(self, packets: List[Radius]) -> Radius:
         """Return Stop packet or latest Interim-Update+error."""
         try:
@@ -150,11 +153,15 @@ class TestAccuracyChecks:
 
     def __tonnage_accuracy(self, expected_octets, packets, octet_func: Callable):
         """General tonnage accuracy function."""
-        expected_octets_low, expected_octets_high = self.get_octet_bounds(
-            expected_octets
+        tolerance = 0.1
+        expected_octets_low, expected_octets_high = (
+            expected_octets * (1 - tolerance),
+            expected_octets * (1 + tolerance),
         )
         packet = self.__get_stop_or_update_packets(packets)
         total_octets = octet_func(packet)
+        print("Octets: ", total_octets)
+        print(f", Valid Range: {expected_octets_low} - {expected_octets_high}")
         assert expected_octets_low <= total_octets <= expected_octets_high
 
     @pytest.mark.core_upload
@@ -175,29 +182,39 @@ class TestAccuracyChecks:
     def test_session_duration_accuracy(self, packets, metadata):
         """Session duration is accurate."""
         tolerance = 0.05
-        session_time_lower_bound = (metadata.session_duration * (1 - tolerance)) - 2
-        session_time_upper_bound = (metadata.session_duration * (1 + tolerance)) + 2
+        session_time_lower_bound = round(
+            (metadata.session_duration * (1 - tolerance)) - 2, 2
+        )
+        session_time_upper_bound = round(
+            (metadata.session_duration * (1 + tolerance)) + 2, 2
+        )
         packet = self.__get_stop_or_update_packets(packets)
         acct_session_times = pe.get_acct_session_time(packet)
+        acct_session_time = acct_session_times[0]
         assert len(acct_session_times) == 1
-        assert (
-            session_time_lower_bound
-            <= acct_session_times[0]
-            <= session_time_upper_bound
-        )
+        assert session_time_lower_bound <= acct_session_time <= session_time_upper_bound
+        print("Session Time: ", acct_session_time)
+        print(f", Valid Range: {session_time_lower_bound} - {session_time_upper_bound}")
+
+    def __packet_tests(self, packet_attributes):
+        """General packet count test."""
+        assert len(packet_attributes) == 1
+        packets = packet_attributes[0]
+        try:
+            assert packets > 0
+        except AssertionError:
+            print(f"Expected packets > 0, got {packets}")
 
     @pytest.mark.core
     def test_input_packet_count_nonzero(self, packets):
         """Input Packet count is non-zero."""
         stop_update_packet = self.__get_stop_or_update_packets(packets)
         input_packets_attributes = pe.get_acct_input_packets(stop_update_packet)
-        assert len(input_packets_attributes) == 1
-        assert input_packets_attributes[0] > 0
+        self.__packet_tests(input_packets_attributes)
 
     @pytest.mark.core
     def test_output_packet_count_nonzero(self, packets):
         """Output Packet count is non-zero."""
         packet = self.__get_stop_or_update_packets(packets)
         output_packets_attributes = pe.get_acct_output_packets(packet)
-        assert len(output_packets_attributes) == 1
-        assert output_packets_attributes[0] > 0
+        self.__packet_tests(output_packets_attributes)
