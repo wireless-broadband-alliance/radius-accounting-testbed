@@ -6,7 +6,7 @@ from typing import List
 from scapy.all import Radius
 import logging
 from extra_funcs import get_metadata_loc, get_pcap_loc, get_metadata, Metadata
-from fpdf import FPDF
+from fpdf import FPDF, XPos, YPos
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import raatestbed.pcap_extract as pe
@@ -53,13 +53,20 @@ class CustomPDFReportPlugin:
         pdf.add_page()
 
         # Create a title
-        pdf.set_font("Arial", size=14)
-        pdf.cell(200, 10, f'Test Report for "{test_name}"', ln=1, align="C")
+        pdf.set_font("Helvetica", size=14)
+        pdf.cell(
+            200,
+            10,
+            f'Test Report for "{test_name}"',
+            new_x=XPos.LMARGIN,
+            new_y=YPos.NEXT,
+            align="C",
+        )
         pdf.ln()
         pdf.ln()
 
         # Common setup for all cells
-        pdf.set_font("Arial", size=10)
+        pdf.set_font("Helvetica", size=10)
         cell_height = 10
         whitespace = 3
 
