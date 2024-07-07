@@ -33,7 +33,30 @@ def pytest_addoption(parser):
     )
 
 
+class PDF(FPDF):
+    def __init__(self, test_name: str, metadata: Metadata):
+        super().__init__(orientation="L")
+        self.test_name = test_name
+        self.metadata = metadata
+
+    def header(self):
+        d = self.metadata
+        self.set_font("Helvetica", "B", size=14)
+        self.cell(0, 18, f'Test Report for "{self.test_name}"', 0, 1, align="C")
+        self.set_font("Helvetica", size=11)
+        self.cell(0, 7, f"Name: {self.test_name}", 0, 1, align="L")
+        self.cell(0, 7, "Start Time: PLACEHOLDER", 0, 1, align="L")
+        self.cell(0, 7, "End Time: PLACEHOLDER", 0, 1, align="L")
+        self.cell(0, 7, f"Chunks: {d.chunks}", 0, 1, align="L")
+        self.cell(0, 7, f"Chunk Size: {d.chunk_size}", 0, 1, align="L")
+        self.cell(0, 7, f"Session Duration (s): {d.session_duration}", 0, 1, align="L")
+        self.cell(0, 7, f"Username: {d.username}", 0, 1, align="L")
+        self.ln(10)
+
+
 class CustomPDFReportPlugin:
+    """Custom plugin to generate a PDF report with test results."""
+
     def __init__(self):
         self.test_results = []
 
@@ -47,23 +70,29 @@ class CustomPDFReportPlugin:
             )
 
     def pytest_sessionfinish(self, session):
+        """After the test is finished, generate a PDF report with test results."""
         report_dir = session.config.getoption("--report_dir")
+        pcap_dir = session.config.getoption("--pcap_dir")
         test_name = session.config.getoption("--test_name")
-        pdf = FPDF(orientation="L")
+
+        # Raise errors if the files are not found
+        metadata = get_metadata(test_name, pcap_dir)
+
+        pdf = PDF(test_name=test_name, metadata=metadata)
         pdf.add_page()
 
-        # Create a title
-        pdf.set_font("Helvetica", size=14)
-        pdf.cell(
-            200,
-            10,
-            f'Test Report for "{test_name}"',
-            new_x=XPos.LMARGIN,
-            new_y=YPos.NEXT,
-            align="C",
-        )
-        pdf.ln()
-        pdf.ln()
+        ## Create a title
+        # pdf.set_font("Helvetica", size=14)
+        # pdf.cell(
+        #    200,
+        #    10,
+        #    f'Test Report for "{test_name}"',
+        #    new_x=XPos.LMARGIN,
+        #    new_y=YPos.NEXT,
+        #    align="C",
+        # )
+        # pdf.ln()
+        # pdf.ln()
 
         # Common setup for all cells
         pdf.set_font("Helvetica", size=10)
