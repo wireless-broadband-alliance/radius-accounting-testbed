@@ -40,18 +40,16 @@ class PDF(FPDF):
         self.metadata = metadata
 
     def header(self):
-        d = self.metadata
         self.set_font("Helvetica", "B", size=14)
-        self.cell(0, 18, f'Test Report for "{self.test_name}"', 0, 1, align="C")
-        self.set_font("Helvetica", size=11)
-        self.cell(0, 7, f"Name: {self.test_name}", 0, 1, align="L")
-        self.cell(0, 7, "Start Time: PLACEHOLDER", 0, 1, align="L")
-        self.cell(0, 7, "End Time: PLACEHOLDER", 0, 1, align="L")
-        self.cell(0, 7, f"Chunks: {d.chunks}", 0, 1, align="L")
-        self.cell(0, 7, f"Chunk Size: {d.chunk_size}", 0, 1, align="L")
-        self.cell(0, 7, f"Session Duration (s): {d.session_duration}", 0, 1, align="L")
-        self.cell(0, 7, f"Username: {d.username}", 0, 1, align="L")
-        self.ln(10)
+        self.cell(
+            0,
+            18,
+            f'Test Report for "{self.test_name}"',
+            0,
+            align="C",
+            new_x=XPos.LMARGIN,
+            new_y=YPos.NEXT,
+        )
 
 
 class CustomPDFReportPlugin:
@@ -78,28 +76,7 @@ class CustomPDFReportPlugin:
         # Raise errors if the files are not found
         metadata = get_metadata(test_name, pcap_dir)
 
-        pdf = PDF(test_name=test_name, metadata=metadata)
-        pdf.add_page()
-
-        ## Create a title
-        # pdf.set_font("Helvetica", size=14)
-        # pdf.cell(
-        #    200,
-        #    10,
-        #    f'Test Report for "{test_name}"',
-        #    new_x=XPos.LMARGIN,
-        #    new_y=YPos.NEXT,
-        #    align="C",
-        # )
-        # pdf.ln()
-        # pdf.ln()
-
-        # Common setup for all cells
-        pdf.set_font("Helvetica", size=10)
-        cell_height = 10
-        whitespace = 3
-
-        # Create headers
+        # Create table headers
         markers_title = "Marker(s)"
         category_title = "Category"
         test_case_title = "Test Case"
@@ -132,6 +109,48 @@ class CustomPDFReportPlugin:
             test_file_list.append(test_file)
             result_list.append(result.upper())
 
+        # Create PDF
+        pdf = PDF(test_name=test_name, metadata=metadata)
+        pdf.add_page()
+
+        date_format = "%Y-%m-%d %H:%M:%S"
+        d = metadata
+        start_time = d.start_time.strftime(date_format)
+        end_time = d.end_time.strftime(date_format)
+        passed_count = sum(1 for item in result_list if item.lower() == "passed")
+        failed_count = sum(1 for item in result_list if item.lower() == "failed")
+        pdf.set_font("Helvetica", size=11)
+
+        def cell_template(text: str, align="L"):
+            pdf.cell(0, 7, text, 0, align=align, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+
+        cell_template(
+            f"Passed: {passed_count}, Failed: {failed_count}, Total: {len(self.test_results)}",
+            align="C",
+        )
+        pdf.ln(10)
+
+        pdf.set_font(style="B")
+        cell_template("--- Test Metadata---")
+        pdf.set_font(style="")
+        cell_template(f"Name: {test_name}")
+        cell_template(f"Start Time: {start_time}")
+        cell_template(f"End Time: {end_time}")
+        cell_template(f"Chunks: {d.chunks}")
+        cell_template(f"Chunk Size: {d.chunk_size}")
+        cell_template(f"Session Duration (s): {d.session_duration}")
+        cell_template(f"Username: {d.username}")
+        pdf.ln(10)
+
+        pdf.set_font(style="B")
+        cell_template("--- Test Case Summary---")
+        pdf.ln(5)
+        pdf.set_font(style="")
+        # Common setup for all cells
+        pdf.set_font("Helvetica", size=10)
+        cell_height = 10
+        whitespace = 3
+
         # Get max width for each column
         def get_max_width(cell):
             return max([pdf.get_string_width(text) for text in cell])
@@ -141,7 +160,7 @@ class CustomPDFReportPlugin:
         width_test_case = get_max_width(test_case_list)
         width_result = get_max_width(result_list)
         width_test_file = get_max_width(test_file_list)
-        width_context = get_max_width(context_list)
+        # width_context = get_max_width(context_list)
 
         # Write data to table
         for marker, category, test_case, result, test_file, context in zip(
@@ -175,7 +194,7 @@ class CustomPDFReportPlugin:
 
             pdf.set_text_color(0, 0, 0)
             pdf.cell(width_test_file + whitespace, cell_height, test_file, border=1)
-            pdf.cell(width_context + whitespace, cell_height, context, border=1)
+            # pdf.cell(width_context + whitespace, cell_height, context, border=1)
             pdf.ln()
 
         # Write PDF to file
