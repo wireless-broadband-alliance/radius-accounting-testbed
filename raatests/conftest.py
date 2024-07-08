@@ -51,7 +51,7 @@ class PDF(FPDF):
             new_y=YPos.NEXT,
         )
         # Add logos
-        self.image("media/raa.logo.png", x=240, y=8, w=50, h=20)
+        self.image("media/raa.logo.png", x=240, y=8, w=45, h=15)
         self.image("media/wba.logo.png", x=5, y=8, w=50, h=15)
 
 
