@@ -50,6 +50,9 @@ class PDF(FPDF):
             new_x=XPos.LMARGIN,
             new_y=YPos.NEXT,
         )
+        # Add logos
+        self.image("media/raa.logo.png", x=240, y=8, w=50, h=20)
+        self.image("media/wba.logo.png", x=5, y=8, w=50, h=15)
 
 
 class CustomPDFReportPlugin:
