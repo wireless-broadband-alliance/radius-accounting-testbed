@@ -2,9 +2,11 @@
 import pytest
 import os
 import sys
+import logging
+from glob import glob
+from zipfile import ZipFile
 from typing import List
 from scapy.all import Radius
-import logging
 from extra_funcs import get_metadata_loc, get_pcap_loc, get_metadata, Metadata
 from fpdf import FPDF, XPos, YPos
 
@@ -53,6 +55,39 @@ class PDF(FPDF):
         # Add logos
         self.image("media/raa.logo.png", x=240, y=8, w=45, h=15)
         self.image("media/wba.logo.png", x=5, y=8, w=50, h=15)
+
+    def set_pass_fail_color(self, result: str):
+        if result.lower() == "passed":
+            self.set_text_color(0, 128, 0)
+        if result.lower() == "failed":
+            self.set_text_color(128, 0, 0)
+
+    def testcase_detail(self, title, markers, result, context):
+        """Create a section showing details of each test case."""
+        self.set_font("Helvetica", "B", 11)
+
+        def create_cell(title: str, body: str = "", align="L", whitespace=5):
+            """Basic cell creation function for test case details."""
+            self.cell(len(title) + whitespace, 8, title, 0, align=align)
+            self.cell(
+                len(body) + whitespace,
+                8,
+                body,
+                0,
+                align=align,
+                new_x=XPos.LMARGIN,
+                new_y=YPos.NEXT,
+            )
+
+        self.set_font(style="B", size=11)
+        create_cell(title)
+        self.set_font(style="", size=10)
+        create_cell("markers", ", ".join(markers))
+        self.set_font(style="", size=10)
+        create_cell("result", result.upper())
+        self.set_font(style="", size=10)
+        create_cell("context", context)
+        self.ln(5)
 
 
 class CustomPDFReportPlugin:
@@ -200,11 +235,55 @@ class CustomPDFReportPlugin:
             # pdf.cell(width_context + whitespace, cell_height, context, border=1)
             pdf.ln()
 
+        pdf.add_page()
+
+        # Add details for each test
+        pdf.ln(10)
+        pdf.set_font(style="B", size=11)
+        cell_template("--- Test Case Details---")
+        pdf.set_font(style="", size=10)
+
+        for markers, title, result, context in self.test_results:
+            pdf.testcase_detail(
+                title=title, markers=markers, result=result, context=context
+            )
+
         # Write PDF to file
         report_fullpath = os.path.join(report_dir, f"{test_name}_report.pdf")
         logging.info(f"Writing report to {report_fullpath}")
         pdf.output(report_fullpath)
         logging.info(f"Report written to {report_fullpath}")
+
+
+def create_zip_archive(archive_name, root_dir, patterns):
+    """Create a ZIP archive from files matching the given patterns."""
+    files = []
+    for pattern in patterns:
+        files.extend(glob(os.path.join(root_dir, pattern)))
+        print(pattern)
+        print(files)
+    with ZipFile(archive_name, "w") as zipf:
+        for file in files:
+            print(file.removeprefix(root_dir))
+            zipf.write(file, arcname=file.removeprefix(root_dir))
+    logging.info(f"Wrote ZIP archive to {archive_name}")
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """Run after the test session and plugins are finished."""
+
+    def add_root_path(path):
+        return os.path.join("/usr/local/raa", path)
+
+    # Package files into zip archive
+    test_name = session.config.getoption("--test_name")
+    patterns = [
+        add_root_path(f"logs/{test_name}*"),
+        add_root_path(f"pcap/{test_name}*"),
+        add_root_path(f"reports/{test_name}*"),
+    ]
+    zip_file_name = f"/usr/local/raa/{test_name}.bundle.zip"
+    create_zip_archive(zip_file_name, root_dir="/usr/local/raa", patterns=patterns)
 
 
 def pytest_configure(config):
