@@ -56,37 +56,56 @@ class PDF(FPDF):
         self.image("media/raa.logo.png", x=240, y=8, w=45, h=15)
         self.image("media/wba.logo.png", x=5, y=8, w=50, h=15)
 
-    def set_pass_fail_color(self, result: str):
+    def unset_color(self):
+        self.set_text_color(0, 0, 0)
+
+    def set_color(self, result: str):
         if result.lower() == "passed":
             self.set_text_color(0, 128, 0)
-        if result.lower() == "failed":
+        elif result.lower() == "failed":
             self.set_text_color(128, 0, 0)
+        else:
+            self.unset_color()
 
     def testcase_detail(self, title, markers, result, context):
         """Create a section showing details of each test case."""
-        self.set_font("Helvetica", "B", 11)
 
-        def create_cell(title: str, body: str = "", align="L", whitespace=5):
+        def create_border():
+            """Create a border for the test case details."""
+            self.set_draw_color(0, 0, 0)  # Set border color (black)
+            self.set_line_width(0.25)  # Set border line width
+            self.line(10, self.get_y(), 200, self.get_y())
+            self.ln(2)
+
+        def create_cell(
+            title: str, body: str = "", bold_title=False, size=10, whitespace=" "
+        ):
             """Basic cell creation function for test case details."""
-            self.cell(len(title) + whitespace, 8, title, 0, align=align)
-            self.cell(
-                len(body) + whitespace,
+
+            if bold_title:
+                self.set_font(style="B", size=size)
+            else:
+                self.set_font(style="", size=size)
+            title_width = self.get_string_width(title + whitespace)
+            self.cell(title_width, 8, title, 0, align="L")
+            self.set_font(style="", size=size)
+            self.set_color(body)
+            self.multi_cell(
+                0,
                 8,
                 body,
                 0,
-                align=align,
+                align="L",
                 new_x=XPos.LMARGIN,
                 new_y=YPos.NEXT,
             )
+            self.unset_color()
 
-        self.set_font(style="B", size=11)
-        create_cell(title)
-        self.set_font(style="", size=10)
-        create_cell("markers", ", ".join(markers))
-        self.set_font(style="", size=10)
-        create_cell("result", result.upper())
-        self.set_font(style="", size=10)
-        create_cell("context", context)
+        create_border()
+        create_cell(title, bold_title=True, size=11)
+        create_cell("markers :", ", ".join(markers))
+        create_cell("result :", result.upper())
+        create_cell("context :", context)
         self.ln(5)
 
 
@@ -241,6 +260,7 @@ class CustomPDFReportPlugin:
         pdf.ln(10)
         pdf.set_font(style="B", size=11)
         cell_template("--- Test Case Details---")
+        pdf.ln(5)
         pdf.set_font(style="", size=10)
 
         for markers, title, result, context in self.test_results:

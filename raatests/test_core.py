@@ -161,7 +161,7 @@ class TestAccuracyChecks:
         packet = self.__get_stop_or_update_packets(packets)
         total_octets = octet_func(packet)
         print("Octets: ", total_octets)
-        print(f", Valid Range: {expected_octets_low} - {expected_octets_high}")
+        print(f"Valid Range: {expected_octets_low} - {expected_octets_high}")
         assert expected_octets_low <= total_octets <= expected_octets_high
 
     @pytest.mark.core_upload
@@ -194,7 +194,7 @@ class TestAccuracyChecks:
         assert len(acct_session_times) == 1
         assert session_time_lower_bound <= acct_session_time <= session_time_upper_bound
         print("Session Time: ", acct_session_time)
-        print(f", Valid Range: {session_time_lower_bound} - {session_time_upper_bound}")
+        print(f"Valid Range: {session_time_lower_bound} - {session_time_upper_bound}")
 
     def __packet_tests(self, packet_attributes):
         """General packet count test."""
