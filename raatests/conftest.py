@@ -260,11 +260,8 @@ def create_zip_archive(archive_name, root_dir, patterns):
     files = []
     for pattern in patterns:
         files.extend(glob(os.path.join(root_dir, pattern)))
-        print(pattern)
-        print(files)
     with ZipFile(archive_name, "w") as zipf:
         for file in files:
-            print(file.removeprefix(root_dir))
             zipf.write(file, arcname=file.removeprefix(root_dir))
     logging.info(f"Wrote ZIP archive to {archive_name}")
 
