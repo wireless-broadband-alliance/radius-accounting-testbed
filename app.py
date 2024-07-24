@@ -4,6 +4,7 @@ import time
 import json
 import os
 import pytest
+from datetime import datetime
 
 from raatestbed.data_transfer import get_data_chunk
 from raatestbed.test_setup import TestSetup
@@ -15,7 +16,7 @@ from raatestbed.test_setup import DEFAULT_SSID
 from raatestbed.test_setup import DEFAULT_WIRELESS_IFACE
 from raatestbed.test_setup import DEFAULT_WIRED_IFACE
 
-from raatests.extra_funcs import get_metadata
+from raatests.extra_funcs import get_metadata, Metadata
 
 
 # TODO: too many arguments, maybe use a config file
@@ -74,6 +75,10 @@ def parse_cliargs():
         default=DEFAULT_WIRED_IFACE,
         help=f"default: {DEFAULT_WIRED_IFACE}",
     )
+    parser.add_argument("--no_pcap", action="store_true", help="Skip PCAP generation")
+    parser.add_argument(
+        "--no_test", action="store_true", help="Skip test case execution"
+    )
     return parser.parse_args()
 
 
@@ -88,7 +93,6 @@ def setup_logging(debug):
 
 def generate_pcap(cliargs):
     """Run end-to-end test and generate PCAP + PCAP metadata."""
-    test_metadata = dict()
 
     # Initialize test for PCAP generation.
     test_name = cliargs["test_name"]
@@ -112,6 +116,7 @@ def generate_pcap(cliargs):
     chunks = cliargs["chunks"]
     chunk_size = cliargs["chunk_size"]
     logging.info(f"pulling {chunks} chunks")
+    start_time = datetime.now()
     begin_data_transfer = time.perf_counter()
     for num in range(chunks):
         logging.info(f"pulling chunk {num+1} of {chunks}")
@@ -124,7 +129,8 @@ def generate_pcap(cliargs):
 
     # Data transfer completed, stop test.
     end = time.perf_counter()
-    session_duration = end - begin
+    end_time = datetime.now()
+    session_duration = int(end - begin)
     data_transfer_duration = end - begin_data_transfer
     logging.info(f"Download completed in {data_transfer_duration:.2f} seconds")
     test.stop()
@@ -132,13 +138,19 @@ def generate_pcap(cliargs):
     # Write test metadata to file.
     filename = f"{test_name}.metadata.json"
     filename_withdir = os.path.join(cliargs["pcap_dir"], filename)
-    test_metadata["username"] = test.username
-    test_metadata["session_duration"] = int(session_duration)
-    test_metadata["chunk_size"] = chunk_size
-    test_metadata["chunks"] = chunks
+    test_metadata = Metadata(
+        username=test.username,
+        session_duration=session_duration,
+        chunk_size=chunk_size,
+        chunks=chunks,
+        start_time=start_time,
+        end_time=end_time,
+    )
+    test_metadata_dict = test_metadata.get_dict()
+
     logging.info(f'Writing metadata to file "{filename_withdir}"')
     with open(filename_withdir, "w") as f:
-        json.dump(test_metadata, f)
+        json.dump(test_metadata_dict, f)
 
 
 def select_markers():
@@ -178,16 +190,8 @@ def user_wants_to_continue(prompt_message):
         return user_wants_to_continue(prompt_message)
 
 
-def main():
-    # Parse command line arguments and set up logging.
-    cliargs_orig = parse_cliargs()
-    cliargs = vars(parse_cliargs())
-    setup_logging(cliargs_orig.debug)
-
-    # Generate PCAP.
-    generate_pcap(cliargs)
-
-    # Run tests against PCAP.
+def execute_test_cases(cliargs):
+    """Run tests against PCAP."""
     test_name = cliargs["test_name"]
     metadata = get_metadata(test_name, cliargs["pcap_dir"])
     logging.info(f'\n\nMetadata for "{test_name}":\n{metadata.pretty_print_format()}\n')
@@ -196,6 +200,21 @@ def main():
     extra_args = ["-m", markers]
     if user_wants_to_continue(f'Running test suites "{markers_txt}"'):
         pytest.main(pytest_args + extra_args)
+
+
+def main():
+    # Parse command line arguments and set up logging.
+    cliargs_orig = parse_cliargs()
+    cliargs = vars(cliargs_orig)
+    setup_logging(cliargs_orig.debug)
+
+    # Generate PCAP.
+    if not cliargs["no_pcap"]:
+        generate_pcap(cliargs)
+
+    # Execute tests.
+    if not cliargs["no_test"]:
+        execute_test_cases(cliargs)
 
 
 if __name__ == "__main__":

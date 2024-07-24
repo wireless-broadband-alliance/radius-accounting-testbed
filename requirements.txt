@@ -1,7 +1,13 @@
+defusedxml==0.7.1
+exceptiongroup==1.2.1
+fonttools==4.53.1
+fpdf2==2.7.9
 iniconfig==2.0.0
 netifaces==0.11.0
 packaging==24.0
+pillow==10.4.0
 pluggy==1.5.0
 psutil==5.9.8
 pytest==8.2.1
 scapy==2.5.0
+tomli==2.0.1

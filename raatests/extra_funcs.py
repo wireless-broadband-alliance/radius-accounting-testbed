@@ -1,6 +1,7 @@
 # content of conftest.py
 import json
 import os
+from datetime import datetime
 from glob import glob
 from dataclasses import dataclass
 
@@ -10,17 +11,32 @@ class Metadata:
     """Metadata for a test."""
 
     username: str
-    session_duration: str
+    session_duration: int
     chunk_size: str
     chunks: str
+    start_time: datetime
+    end_time: datetime
+    _date_format: str = "%Y-%m-%d %H:%M:%S"
+
+    def __post_init__(self):
+        # Convert start_time and end_time to datetime if imported as string
+        if isinstance(self.start_time, str):
+            self.start_time = datetime.strptime(self.start_time, self._date_format)
+        if isinstance(self.end_time, str):
+            self.end_time = datetime.strptime(self.end_time, self._date_format)
+
+    def get_dict(self) -> dict:
+        return {
+            "username": self.username,
+            "session_duration": self.session_duration,
+            "chunk_size": self.chunk_size,
+            "chunks": self.chunks,
+            "start_time": self.start_time.strftime(self._date_format),
+            "end_time": self.end_time.strftime(self._date_format),
+        }
 
     def pretty_print_format(self):
-        return (
-            f"username: {self.username}\n"
-            f"session_duration: {self.session_duration}\n"
-            f"chunks: {self.chunks}\n"
-            f"chunk_size: {self.chunk_size}"
-        )
+        return json.dumps(self.get_dict(), indent=4)
 
 
 def __check_for_one_file(glob_pattern: str, file_type: str) -> str:
