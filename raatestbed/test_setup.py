@@ -84,9 +84,13 @@ def create_dir_if_not_exists(directory):
 class TestSetup:
     """Class that contains common methods and attributes for all tests."""
 
-    def __init__(self, test_config: TestConfig, debug=False):
+    def __init__(self, 
+                 test_config: TestConfig, 
+                 logger: logging.Logger, 
+                 debug=False):
         self.config = test_config
         self.debug = debug
+        self.logger = logger
         self.logs_dir = self.config.logs_dir
         self.pcap_dir = self.config.pcap_dir
         self.__create_dirs()
@@ -158,7 +162,7 @@ class TestSetup:
         """Start processes"""
         self.stop()
         self.__initialize_proc_objs()
-        logging.info(f'Starting test "{self.config.test_name}"...')
+        self.logger.info(f'Starting test "{self.config.test_name}"...')
 
         def start_proc(proc):
             assert proc is not None
@@ -171,7 +175,7 @@ class TestSetup:
 
         if wait_for_ip:
             # Block until wireless interface has IP
-            logging.info(f"Waiting for IP on {self.config.client_interface}...")
+            self.logger.info(f"Waiting for IP on {self.config.client_interface}...")
             while not self.__check_for_ip():
                 time.sleep(0.05)
         start_time = time.perf_counter()  # start counter after IP given
@@ -194,8 +198,8 @@ class TestSetup:
         stop_proc(self.radius_tcpdump)
 
 
-def get_chunks(test_config: TestConfig, debug=False):
-    test = TestSetup(test_config, debug=debug)
+def get_chunks(test_config: TestConfig, logger: logging.Logger, debug=False):
+    test = TestSetup(test_config, debug=debug, logger=logger)
     chunks = test_config.chunks
     test.start()
     time.sleep(2)
@@ -261,10 +265,12 @@ def user_wants_to_continue(prompt_message):
 
 
 
-def generate_pcap(test_config: TestConfig, debug=False):
+def generate_pcap(test_config: TestConfig, 
+                  logger: logging.Logger, 
+                  debug=False):
     """Run end-to-end test and generate PCAP + PCAP metadata."""
 
-    test = TestSetup(test_config, debug=debug)
+    test = TestSetup(test_config, debug=debug, logger=logger)
     chunks = test_config.chunks
 
     # Start test for PCAP generation.
@@ -272,11 +278,11 @@ def generate_pcap(test_config: TestConfig, debug=False):
     time.sleep(2)
 
     # Start data transfer.
-    logging.info(f"pulling {chunks} chunks")
+    logger.info(f"pulling {chunks} chunks")
     start_time = datetime.now()
     begin_data_transfer = time.perf_counter()
     for num in range(chunks):
-        logging.info(f"pulling chunk {num+1} of {chunks}")
+        logger.info(f"pulling chunk {num+1} of {chunks}")
         get_data_chunk(
             server_host=test_config.data_server_ip,
             server_port=test_config.data_server_port,
@@ -289,7 +295,7 @@ def generate_pcap(test_config: TestConfig, debug=False):
     end_time = datetime.now()
     session_duration = int(end - begin)
     data_transfer_duration = end - begin_data_transfer
-    logging.info(f"Download completed in {data_transfer_duration:.2f} seconds")
+    logger.info(f"Download completed in {data_transfer_duration:.2f} seconds")
     test.stop()
 
     # Write test metadata to file.
@@ -305,7 +311,7 @@ def generate_pcap(test_config: TestConfig, debug=False):
     )
     test_metadata_dict = test_metadata.get_dict()
 
-    logging.info(f'Writing metadata to file "{filename_withdir}"')
+    logger.info(f'Writing metadata to file "{filename_withdir}"')
     with open(filename_withdir, "w") as f:
         json.dump(test_metadata_dict, f)
 

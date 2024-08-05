@@ -1,8 +1,10 @@
 import streamlit as st
 import sys
 import webbrowser
+import logging
 import raatestbed.test_setup as ts
 from typing import List
+from streamlit.logger import get_logger
 from raatestbed.test_setup import TestConfig
 
 #TODO: dynamically generate tags/markers from pytest
@@ -79,9 +81,18 @@ def text_input_local_output_directory(default=DEFAULT_ROOT_DIR):
     help = "Local output directory on the test bed where the test results will be stored."
     return st.text_input('Output directory on test bed', value=default, help=help)
 
-def links():
-    if st.button("Go to Google"):
-        webbrowser.open_new_tab("https://www.google.com")
+class StreamlitLogHandler(logging.Handler):
+    def __init__(self, widget_update_func):
+        super().__init__()
+        self.widget_update_func = widget_update_func
+
+    def emit(self, record):
+        msg = self.format(record)
+        self.widget_update_func(msg)
+
+def update_widget(msg):
+    st.write(msg)
+
 
 # Main form showing all inputs
 with st.form(key='main'):
@@ -108,6 +119,7 @@ with st.form(key='main'):
     server_interface = text_input_server_interface()
     local_output_directory = text_input_local_output_directory()
 
+    update_widget('')
     # Button to start the tests
     if st.form_submit_button('Run Tests'):
         # Create the test configuration
@@ -128,10 +140,11 @@ with st.form(key='main'):
         )
         config.write_yaml()
 
-        # Redirect stdout to capture print output
-        original_stdout = sys.stdout
+        logger = get_logger(__name__)
+        handler = StreamlitLogHandler(st.empty().code)
+        logger.addHandler(handler)
         if generate_pcap:
-            ts.generate_pcap(config)
+            ts.generate_pcap(config, logger)
 
         #st.write(f'Starting tests with Chunk Size: {chunk_size}, Number of Chunks: {chunks}')
         #for marker in markers:
