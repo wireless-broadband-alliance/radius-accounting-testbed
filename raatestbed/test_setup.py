@@ -4,9 +4,8 @@ import logging
 import subprocess
 import raatestbed.processes as procs
 import yaml
-import pytest
 import json
-from raatests.extra_funcs import get_metadata, Metadata
+from raatests.extra_funcs import Metadata
 from datetime import datetime
 from typing import List
 from dataclasses import dataclass
@@ -35,6 +34,9 @@ class TestConfig:
     client_interface: str
     server_interface: str
     local_output_directory: str
+    sut_make: str
+    sut_model: str
+    sut_firmware: str
 
     @property
     def pcap_dir(self):
@@ -198,71 +200,6 @@ class TestSetup:
         stop_proc(self.radius_tcpdump)
 
 
-def get_chunks(test_config: TestConfig, logger: logging.Logger, debug=False):
-    test = TestSetup(test_config, debug=debug, logger=logger)
-    chunks = test_config.chunks
-    test.start()
-    time.sleep(2)
-    logging.info(f"pulling {chunks} chunks")
-    begin = time.perf_counter()
-    for num in range(chunks):
-        logging.info(f"pulling chunk {num+1} of {chunks}")
-        get_data_chunk(
-            server_host=test_config.data_server_ip,
-            server_port=test_config.data_server_port,
-            chunk_size=test_config.chunk_size,
-            iface=test_config.client_interface
-        )
-    end = time.perf_counter()
-    logging.info(f"Download completed in {end - begin:.2f} seconds")
-    test.stop()
-
-def select_markers():
-    """Select markers from a list."""
-
-    # TODO: These should be generated dynamically
-    options_mapping = {
-        "1": "core",
-        "2": "core_download",
-        "3": "core_upload",
-        "4": "openroaming",
-    }
-    print("\nSelect tests suite(s) from the list:")
-    for key, value in options_mapping.items():
-        print(f"{key}) {value}")
-    print("")
-
-    selected_options = []
-    user_input = input("Enter your options (comma-separated numbers): ")
-    selected_options = [
-        options_mapping.get(choice.strip(), "") for choice in user_input.split(",")
-    ]
-    selected_options = [option for option in selected_options if option]
-
-    return ", ".join(selected_options), " or ".join(selected_options)
-
-def execute_test_cases(config: TestConfig):
-    """Run tests against PCAP."""
-    test_name = config.test_name
-    metadata = get_metadata(test_name, config.pcap_dir)
-    logging.info(f'\n\nMetadata for "{test_name}":\n{metadata.pretty_print_format()}\n')
-    markers_txt, markers = select_markers()
-    pytest_args = ["-v", "raatests", "--test_name", test_name]
-    extra_args = ["-m", markers]
-    if user_wants_to_continue(f'Running test suites "{markers_txt}"'):
-        pytest.main(pytest_args + extra_args)
-
-def user_wants_to_continue(prompt_message):
-    user_input = input(f"{prompt_message} (yes/no): ").strip().lower()
-
-    if user_input == "yes":
-        return True
-    elif user_input == "no":
-        return False
-    else:
-        print("Invalid input. Please enter 'yes' or 'no'.")
-        return user_wants_to_continue(prompt_message)
-
 
 
 def generate_pcap(test_config: TestConfig, 
@@ -306,6 +243,9 @@ def generate_pcap(test_config: TestConfig,
         session_duration=session_duration,
         chunk_size=str(test_config.chunk_size),
         chunks=str(chunks),
+        sut_make=test_config.sut_make,
+        sut_model=test_config.sut_model,
+        sut_firmware=test_config.sut_firmware,
         start_time=start_time,
         end_time=end_time,
     )

@@ -1,8 +1,8 @@
 import streamlit as st
-import sys
-import webbrowser
 import logging
 import raatestbed.test_setup as ts
+import pytest
+import time
 from typing import List
 from streamlit.logger import get_logger
 from raatestbed.test_setup import TestConfig
@@ -61,11 +61,26 @@ def text_input_ssid():
     help = "SSID of the wireless network that the client will connect to."
     return st.text_input('Wireless Network Name (SSID)', value=DEFAULT_SSID, help=help)
 
+def text_input_sut_make():
+    """Brand of System Under Test (SUT)"""
+    help = "Brand of System Under Test (SUT)"
+    return st.text_input('SUT Make', value="", help=help)
+
+def text_input_sut_model():
+    """Model of System Under Test (SUT)"""
+    help = "Model of System Under Test (SUT)"
+    return st.text_input('SUT Model', value="", help=help)
+
+def text_input_sut_firmware():
+    """Firmware version of System Under Test (SUT)"""
+    help = "Firmware version of System Under Test (SUT)"
+    return st.text_input('SUT Firmware Version', value="", help=help)
+
 def checkbox_select_test_parts():
     """Checkbox to select which parts of the test to run"""
     generate_pcap = st.checkbox("Generate PCAP")
-    generate_report = st.checkbox("Generate Report")
-    return generate_pcap, generate_report
+    execute_test_cases = st.checkbox("Execute Test Cases")
+    return generate_pcap, execute_test_cases
 
 def text_input_client_interface(default=DEFAULT_WIRELESS_IFACE):
     """Wireless interface input field"""
@@ -93,6 +108,17 @@ class StreamlitLogHandler(logging.Handler):
 def update_widget(msg):
     st.write(msg)
 
+def execute_test_cases(config: ts.TestConfig, logger: logging.Logger, markers: List[str]):
+    """Run tests against PCAP."""
+    test_name = config.test_name
+    markers_str = ",".join(markers)
+    logger.info('Executing Test Cases')
+    pytest_args = ["-v", "raatests", "--test_name", test_name]
+    extra_args = ["-m", markers_str]
+    pytest.main(pytest_args + extra_args)
+    logger.info(f'Finished test cases for {test_name} with markers: {markers_str}')
+    time.sleep(2)
+    logger.info(f'Results written to {config.local_output_directory}')
 
 # Main form showing all inputs
 with st.form(key='main'):
@@ -108,8 +134,11 @@ with st.form(key='main'):
     chunks = number_input_num_chunks()
     data_server_listen_port = text_input_data_server_listen_port()
     ssid = text_input_ssid()
+    sut_make = text_input_sut_make()
+    sut_model = text_input_sut_model()
+    sut_firmware = text_input_sut_firmware()
     # PCAP generation + report selection
-    generate_pcap, generate_report = checkbox_select_test_parts()
+    checkbox_generate_pcap, checkbox_execute_test_cases = checkbox_select_test_parts()
     # Marker Selection
     markers = get_selected_markers(TEST_TAGS)
 
@@ -131,8 +160,11 @@ with st.form(key='main'):
             chunks=chunks,
             data_server_listen_port=int(data_server_listen_port),
             ssid=ssid,
-            generate_pcap=generate_pcap,
-            generate_report=generate_report,
+            sut_make=sut_make,
+            sut_model=sut_model,
+            sut_firmware=sut_firmware,
+            generate_pcap=checkbox_generate_pcap,
+            generate_report=checkbox_execute_test_cases,
             markers=markers,
             client_interface=client_interface,
             server_interface=server_interface,
@@ -143,10 +175,8 @@ with st.form(key='main'):
         logger = get_logger(__name__)
         handler = StreamlitLogHandler(st.empty().code)
         logger.addHandler(handler)
-        if generate_pcap:
+        if checkbox_generate_pcap:
             ts.generate_pcap(config, logger)
-
-        #st.write(f'Starting tests with Chunk Size: {chunk_size}, Number of Chunks: {chunks}')
-        #for marker in markers:
-        #    st.write(f'Running {marker} tests...')
+        if checkbox_execute_test_cases:
+            execute_test_cases(config, logger, markers)
 
