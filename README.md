@@ -25,6 +25,74 @@ Markers are used to specify the tests to run against the PCAP. The following mar
 | core | `core-download` | Basic RADIUS tests for file download |
 | openroaming | `openroaming` | OpenRoaming tests |
 
+## Getting Started
+
+### Raspberry Pi Initial Setup
+
+1. Download latest 64-bit Raspberry Pi OS Lite from [here](https://downloads.raspberrypi.com/raspios_lite_arm64/images).
+2. Install Raspberry Pi OS Lite from Step 1 and complete out of box setup (see [here](https://www.raspberrypi.org/documentation/installation/installing-images/README.md) for instructions).
+3. Clone this repository onto Raspberry Pi.
+
+```bash
+git clone https://github.com/wireless-broadband-alliance/radius-accounting-testbed
+```
+
+4. Run all scripts from `provisioning` folder in order as root user.
+
+```bash
+for script in $(find provisioning/ -maxdepth 1 -type f -name "*.sh" | sort); sudo ./$script
+```
+
+5. Proceed to Installation section below.
+
+### Installation
+
+Make sure you have the required packages installed (see below). These should already be installed after completing the Getting Started section above.
+
+1. Python3
+2. Python virtualenv (optional but recommended)
+
+Clone this repository and navigate to the root directory.
+
+Create the virtual environment:
+
+```bash
+python3 -m venv env
+```
+
+Activate the virtual environment:
+
+```bash
+source env/bin/activate
+```
+
+Install the required packages:
+
+```bash
+pip install -r requirements.txt
+```
+
+### Starting the Test Bed
+
+#### Via Graphical User Interface (GUI)
+
+This command will start the Streamlit server on port 8080.
+
+```bash
+streamlit run app.py --server.port 8080
+```
+
+#### Via Command Line Interface (CLI)
+
+This command will start the test bed with default values.
+Use the `--help` option to see all available options.
+
+```bash
+python appcli.py test <data_server_ip> <data_server_port>
+```
+
+Where `data_server_ip` and `data_server_port` are the IP and port to forward traffic through the AP network (System Under Test) to the data server on the Pi.
+
 ## Test Cases
 
 ### Attribute Checks
@@ -62,27 +130,23 @@ Purpose is to verify reported attribute values are accurate.
 
 ### Run Demo
 
-#### Basic Usage
+### Help
+
+Use the `--help` option to see all available options.
 
 ```bash
-python3 app.py <test_name> <data_download_ip> <data_download_port>
+python3 appcli.py --help
 ```
 
-#### Help
-
-```bash
-python3 app.py --help
-```
-
-#### All Possible Options
+### All Possible Options
 
 There are several options available to the user. The following is the help output:
 
 ```bash
-usage: app.py [-h] [--interface INTERFACE] [--debug] [--data_server_listen_port DATA_SERVER_LISTEN_PORT] [--logs_dir LOGS_DIR] [--pcap_dir PCAP_DIR]
-              [--chunk_size CHUNK_SIZE] [--chunks CHUNKS] [--ssid SSID] [--wireless_interface WIRELESS_INTERFACE]
-              [--wired_interface WIRED_INTERFACE]
-              test_name data_server_ip data_server_port
+usage: appcli.py [-h] [--markers MARKERS] [--interface INTERFACE] [--debug] [--data_server_listen_port DATA_SERVER_LISTEN_PORT] [--root_dir ROOT_DIR] [--chunk_size CHUNK_SIZE]
+                 [--chunks CHUNKS] [--ssid SSID] [--sut_firmware SUT_FIRMWARE] [--sut_make SUT_MAKE] [--sut_model SUT_MODEL] [--wireless_interface WIRELESS_INTERFACE]
+                 [--wired_interface WIRED_INTERFACE] [--no_pcap] [--no_test]
+                 test_name data_server_ip data_server_port
 
 positional arguments:
   test_name             Name of the test to run
@@ -91,47 +155,26 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
+  --markers MARKERS     Test Markers: core, core-upload, core-download, openroaming (default)
   --interface INTERFACE
                         Interface used to get data from (default: wlan0)
   --debug
   --data_server_listen_port DATA_SERVER_LISTEN_PORT
                         default: 8000
-  --logs_dir LOGS_DIR   default: /usr/local/raa/logs
-  --pcap_dir PCAP_DIR   default: /usr/local/raa/pcap
+  --root_dir ROOT_DIR   default: /usr/local/raa
   --chunk_size CHUNK_SIZE
                         default: 1048576
   --chunks CHUNKS       Number of chunks to pull, default: 1
   --ssid SSID           default: raatest
+  --sut_firmware SUT_FIRMWARE
+                        SUT firmware
+  --sut_make SUT_MAKE   SUT make
+  --sut_model SUT_MODEL
+                        SUT model
   --wireless_interface WIRELESS_INTERFACE
                         default: wlan0
   --wired_interface WIRED_INTERFACE
                         default: eth0
-```
-
-#### Installation
-
-Make sure you have the required packages installed (see below).
-
-1. Python3
-2. Pip
-3. Python virtualenv (optional but recommended)
-
-Clone this repository and navigate to the root directory.
-
-Create the virtual environment:
-
-```bash
-python3 -m venv env
-```
-
-Activate the virtual environment:
-
-```bash
-source env/bin/activate
-```
-
-Install the required packages:
-
-```bash
-pip install -r requirements.txt
+  --no_pcap             Skip PCAP generation
+  --no_test             Skip test case execution
 ```

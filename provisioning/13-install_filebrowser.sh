@@ -20,11 +20,11 @@ After=network.target
 Type=simple
 Restart=on-failure
 RestartSec=5s
-ExecStart=filebrowser -r %I --noauth --address 0.0.0.0
+ExecStart=filebrowser -r %I --noauth --address 0.0.0.0 --port 8081
 
 [Install]
 WantedBy=multi-user.target
 """ >$SERVICE_FILE
 
 systemctl daemon-reload
-systemctl start filebrowser@-usr-local-raa
+systemctl enable --now filebrowser@usr-local-raa

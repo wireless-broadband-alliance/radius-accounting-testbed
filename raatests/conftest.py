@@ -191,6 +191,9 @@ class CustomPDFReportPlugin:
         cell_template("--- Test Metadata---")
         pdf.set_font(style="")
         cell_template(f"Name: {test_name}")
+        cell_template(f"SUT Make: {d.sut_make}")
+        cell_template(f"SUT Model: {d.sut_model}")
+        cell_template(f"SUT Firmware: {d.sut_firmware}")
         cell_template(f"Start Time: {start_time}")
         cell_template(f"End Time: {end_time}")
         cell_template(f"Chunks: {d.chunks}")
@@ -269,7 +272,7 @@ class CustomPDFReportPlugin:
             )
 
         # Write PDF to file
-        report_fullpath = os.path.join(report_dir, f"{test_name}_report.pdf")
+        report_fullpath = os.path.join(report_dir, f"{test_name}.report.pdf")
         logging.info(f"Writing report to {report_fullpath}")
         pdf.output(report_fullpath)
         logging.info(f"Report written to {report_fullpath}")
@@ -295,9 +298,10 @@ def pytest_sessionfinish(session, exitstatus):
     # Package files into zip archive
     test_name = session.config.getoption("--test_name")
     patterns = [
-        add_root_path(f"logs/{test_name}*"),
-        add_root_path(f"pcap/{test_name}*"),
-        add_root_path(f"reports/{test_name}*"),
+        add_root_path(f"logs/{test_name}.*"),
+        add_root_path(f"pcap/{test_name}.*"),
+        add_root_path(f"reports/{test_name}.*"),
+        add_root_path(f"config/{test_name}.*"),
     ]
     zip_file_name = f"/usr/local/raa/{test_name}.bundle.zip"
     create_zip_archive(zip_file_name, root_dir="/usr/local/raa", patterns=patterns)

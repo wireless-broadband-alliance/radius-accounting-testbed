@@ -6,14 +6,14 @@ fr_base_dir="/etc/freeradius/3.0"
 fr_virt_server_file="$fr_base_dir/sites-available/raa"
 
 add_line_to_file() {
-	line_to_add=$1
-	file=$2
-	if ! grep -qF -- "$line_to_add" "$file"; then
-		awk -v line="$line_to_add" 'BEGIN {print line} {print $0}' "$file" >temp && mv temp "$file"
-		echo "Line \"$line_to_add\" added to $file"
-	else
-		echo "Line \"$line_to_add\" already exists in $file"
-	fi
+  line_to_add=$1
+  file=$2
+  if ! grep -qF -- "$line_to_add" "$file"; then
+    awk -v line="$line_to_add" 'BEGIN {print line} {print $0}' "$file" >temp && mv temp "$file"
+    echo "Line \"$line_to_add\" added to $file"
+  else
+    echo "Line \"$line_to_add\" already exists in $file"
+  fi
 }
 
 echo "Removing default virtual server"
@@ -71,7 +71,11 @@ ln -fs "$fr_virt_server_file" "$fr_base_dir/sites-enabled/raa"
 line_to_add="raauser Cleartext-Password := \"secret\""
 file="$fr_base_dir/users"
 add_line_to_file "$line_to_add" "$file"
+file="$fr_base_dir/mods-config/files/authorize"
+add_line_to_file "$line_to_add" "$file"
 
 #Make changes to eap module
 sed -i 's/^\tdefault_eap_type.*/\tdefault_eap_type = ttls/g' $fr_base_dir/mods-enabled/eap
 sed -i 's/^\t\tdefault_eap_type.*/\t\tdefault_eap_type = mschapv2/g' $fr_base_dir/mods-enabled/eap
+
+systemctl disable --now freeradius
