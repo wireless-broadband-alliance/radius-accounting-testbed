@@ -47,11 +47,10 @@ for script in $(find provisioning/ -maxdepth 1 -type f -name "*.sh" | sort); sud
 
 ### Installation
 
-Make sure you have the required packages installed (see below).
+Make sure you have the required packages installed (see below). These should already be installed after completing the Getting Started section above.
 
 1. Python3
-2. Pip
-3. Python virtualenv (optional but recommended)
+2. Python virtualenv (optional but recommended)
 
 Clone this repository and navigate to the root directory.
 
