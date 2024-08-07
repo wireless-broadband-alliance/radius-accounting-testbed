@@ -30,11 +30,20 @@ Markers are used to specify the tests to run against the PCAP. The following mar
 ### Raspberry Pi Initial Setup
 
 1. Download latest 64-bit Raspberry Pi OS Lite from [here](https://downloads.raspberrypi.com/raspios_lite_arm64/images).
-2. Install Raspberry Pi OS Lite on a supported Raspberry Pi (3B or newer).
-3. Complete the initial out of box setup.
-4. Clone this repository onto Raspberry Pi.
-5. Run all scripts from `provisioning` folder in order.
-6. Proceed to Installation section below.
+2. Install Raspberry Pi OS Lite from Step 1 and complete out of box setup (see [here](https://www.raspberrypi.org/documentation/installation/installing-images/README.md) for instructions).
+3. Clone this repository onto Raspberry Pi.
+
+```bash
+git clone https://github.com/wireless-broadband-alliance/radius-accounting-testbed
+```
+
+4. Run all scripts from `provisioning` folder in order as root user.
+
+```bash
+for script in $(find provisioning/ -maxdepth 1 -type f -name "*.sh" | sort); sudo ./$script
+```
+
+5. Proceed to Installation section below.
 
 ### Installation
 
@@ -71,7 +80,7 @@ pip install -r requirements.txt
 This command will start the Streamlit server on port 8080.
 
 ```bash
-streamlit run appgui.py --server.port 8080
+streamlit run app.py --server.port 8080
 ```
 
 #### Via Command Line Interface (CLI)
@@ -80,8 +89,10 @@ This command will start the test bed with default values.
 Use the `--help` option to see all available options.
 
 ```bash
-python appcli.py test 192.168.123.1 8000
+python appcli.py test <data_server_ip> <data_server_port>
 ```
+
+Where `data_server_ip` and `data_server_port` are the IP and port to forward traffic through the AP network (System Under Test) to the data server on the Pi.
 
 ## Test Cases
 
