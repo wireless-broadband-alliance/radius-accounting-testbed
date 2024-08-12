@@ -102,6 +102,9 @@ The test bed does the following:
 4. Generate and run a series of tests against the PCAP.
 5. Generate a test bundle containing test report and data files.
 
+### Diagram
+The following diagram shows the operation of the test bed.
+
 ```mermaid
 flowchart LR
     subgraph output [Output]
@@ -126,7 +129,7 @@ flowchart LR
     dsepf[Port Forward]
     dse --> dsepf
     end
-    wpa_supplicant-.-802.1X-.->ap
+    wpa_supplicant--802.1X-->ap
     wpa_supplicant--data_transfer-->dse
     dsepf--data_transfer-->DataServer
     ap--RADIUS-->FreeRADIUS
