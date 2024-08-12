@@ -104,11 +104,20 @@ The test bed does the following:
 
 ```mermaid
 flowchart LR
+    subgraph output [Output]
+        logs
+        pcap
+        report
+    end
     subgraph testbed [Test Bed]
-    app[app]--start/stop-->wpa_supplicant
-    app--data_transfer-->wpa_supplicant
-    app--start/stop-->FreeRADIUS
-    app--start/stop-->DataServer[Data Server]
+        app[app]--start/stop-->wpa_supplicant
+        app-->output
+        app--data_transfer-->wpa_supplicant
+        app--start/stop-->FreeRADIUS
+        app--start/stop-->DataServer[Data Server]
+        app--execute-->test_cases
+        test_cases-->pcap
+        filebrowser[FileBrowser] --> output
     end
     subgraph sut [System Under Test]
     ap[Access Point / Controller]
