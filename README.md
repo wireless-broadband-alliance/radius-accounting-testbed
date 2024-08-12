@@ -116,6 +116,7 @@ flowchart LR
         app--start/stop-->FreeRADIUS
         app--start/stop-->DataServer[Data Server]
         app--execute-->test_cases
+        app--generate-->report
         test_cases-->pcap
         filebrowser[FileBrowser] --> output
     end
