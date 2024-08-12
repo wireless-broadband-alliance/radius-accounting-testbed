@@ -105,18 +105,18 @@ The test bed does the following:
 ```mermaid
 flowchart LR
     subgraph testbed [Test Bed]
-    app[app.py]--start/stop-->wpa_supplicant
+    app[app]--start/stop-->wpa_supplicant
     app--data_transfer-->wpa_supplicant
     app--start/stop-->FreeRADIUS
     app--start/stop-->DataServer[Data Server]
     end
     subgraph sut [System Under Test]
     ap[Access Point / Controller]
-    Router
+    Router[Port Forward]
     end
     wpa_supplicant-.-802.1X-.->ap
-    wpa_supplicant--data_transfer-->sut
-    sut--data_transfer-->DataServer
+    wpa_supplicant--data_transfer-->Router
+    Router--data_transfer-->DataServer
     ap--RADIUS-->FreeRADIUS
 
 ```
