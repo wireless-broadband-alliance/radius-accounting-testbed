@@ -112,11 +112,13 @@ flowchart LR
     end
     subgraph sut [System Under Test]
     ap[Access Point / Controller]
-    Router[Port Forward]
+    dse[Data Server Endpoint]
+    dsepf[Port Forward]
+    dse --> dsepf
     end
     wpa_supplicant-.-802.1X-.->ap
-    wpa_supplicant--data_transfer-->Router
-    Router--data_transfer-->DataServer
+    wpa_supplicant--data_transfer-->dse
+    dsepf--data_transfer-->DataServer
     ap--RADIUS-->FreeRADIUS
 
 ```
