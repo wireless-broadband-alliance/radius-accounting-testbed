@@ -93,6 +93,33 @@ python appcli.py test <data_server_ip> <data_server_port>
 
 Where `data_server_ip` and `data_server_port` are the IP and port to forward traffic through the AP network (System Under Test) to the data server on the Pi.
 
+## Test Bed Architecture
+### Basic Operation
+The test bed does the following:
+1. Connect to a wireless access point over 802.1X by SSID matching. The access point is part of the System Under Test (SUT).
+2. Act as a RADIUS server. The RADIUS client is the SUT and points to the test bed.
+3. Download or upload data.
+4. Generate and run a series of tests against the PCAP.
+5. Generate a test bundle containing test report and data files.
+
+```mermaid
+flowchart LR
+    subgraph testbed [Test Bed]
+    app[app.py]--start/stop-->wpa_supplicant
+    app--start/stop-->FreeRADIUS
+    app--start/stop-->DataServer[Data Server]
+    end
+    subgraph sut [System Under Test]
+    ap[Access Point / Controller]
+    Router
+    end
+    wpa_supplicant-.-802.1X-.->ap
+    wpa_supplicant--data_transfer-->sut
+    sut--data_transfer-->DataServer
+    ap--RADIUS-->FreeRADIUS
+
+```
+
 ## Test Cases
 
 ### Attribute Checks
