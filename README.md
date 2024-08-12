@@ -106,6 +106,7 @@ The test bed does the following:
 flowchart LR
     subgraph testbed [Test Bed]
     app[app.py]--start/stop-->wpa_supplicant
+    app--data_transfer-->wpa_supplicant
     app--start/stop-->FreeRADIUS
     app--start/stop-->DataServer[Data Server]
     end
