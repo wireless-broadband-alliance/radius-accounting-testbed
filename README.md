@@ -110,7 +110,7 @@ for wired side may be supported in a future release.
 The data server IP and port are configurable.
 
 ### Test Bed Physical Setup
-1. Connect ethernet port on test bed (Raspberry Pi) to a wired port on network and wait for IP.
+1. Connect ethernet port on test bed (Raspberry Pi) to a wired port on SUT network and wait for IP.
 2. On SUT, broadcast "raatest" or other SSID that belongs to the SUT's 802.1X wireless network.
 3. SSH into and start the test bed, see [how to start script](#starting-the-test-bed).
 You will need to configure the test bed before executing the test suite(s).
@@ -209,11 +209,11 @@ Purpose is to verify reported attribute values are accurate.
 4. Input packet count is non-zero.
 5. Output packet count is non-zero.
 
-### Run Demo
+## Help Option
 
-### Help
+### Usage
 
-Use the `--help` option to see all available options.
+Use the `--help` option to see all available options when using command line.
 
 ```bash
 python3 appcli.py --help
