@@ -153,11 +153,10 @@ flowchart LR
     end
     subgraph testbed [Test Bed]
         app[app]--start/stop-->wpa_supplicant
-        app-->output
+        app--generate-->output
         app--start/stop-->FreeRADIUS
         app--start/stop-->DataServer[Data Server]
         app--execute-->test_cases
-        app--generate-->report
         test_cases-->pcap
         filebrowser[FileBrowser] --> output
     end
@@ -169,7 +168,7 @@ flowchart LR
     end
     wpa_supplicant-.-dot1x{{802.1X}}-.->ap
     app-.-dtw{{Data Transfer via Wi-Fi}}-.->dse
-    dsepf-.-dt{{Data Transfer via Wired}}-.->DataServer
+    dsepf---dt{{Data Transfer via Wired}}--->DataServer
     ap--RADIUS-->FreeRADIUS
 
 ```
