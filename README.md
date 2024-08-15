@@ -104,7 +104,7 @@ The SUT must do the following:
 1. Support an 802.1X wireless network. The SSID can be "raatest" but is configurable.
 The RADIUS server must be the IP of the wired interface of the test bed.
 2. Support a wired network.
-3. Provide DHCP access to both wireless and wired clients. test bed Static IP
+3. Provide DHCP access to both wireless and wired clients. A test bed static IP
 for wired side may be supported in a future release.
 4. Support port forwarding back to test bed. The test bed wireless client will connect to a data server.
 The data server IP and port are configurable.
