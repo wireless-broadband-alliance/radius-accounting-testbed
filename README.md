@@ -125,10 +125,10 @@ flowchart LR
     subgraph sut [System Under Test]
         ap([Access Point])
         rs[router/switch]
-        ap --wired--> rs
+        ap --> rs
     end
-    eth--wired-->rs
-    wlan-.-wireless-.->ap
+    eth-->rs
+    wlan-.-wireless{{wireless}}-.->ap
 ```
 Note: Wireless connection will be made during test execution.
 
