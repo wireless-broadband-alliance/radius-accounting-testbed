@@ -128,7 +128,7 @@ flowchart LR
         ap --wired--> rs
     end
     eth--wired-->rs
-    wlan.-wireless.->ap
+    wlan-.-wireless-.->ap
 ```
 Note: Wireless connection will be made during test execution.
 
@@ -167,8 +167,8 @@ flowchart LR
     dsepf[Port Forward]
     dse --> dsepf
     end
-    wpa_supplicant.-802.1X.->ap
-    app.-data_transfer_wireless.->dse
+    wpa_supplicant-.-802.1X-.->ap
+    app-.-data_transfer_wireless-.->dse
     dsepf--data_transfer-->DataServer
     ap--RADIUS-->FreeRADIUS
 
