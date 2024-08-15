@@ -93,6 +93,87 @@ python appcli.py test <data_server_ip> <data_server_port>
 
 Where `data_server_ip` and `data_server_port` are the IP and port to forward traffic through the AP network (System Under Test) to the data server on the Pi.
 
+## System Under Test (SUT)
+### Introduction
+The Test Bed will run a series of tests against the System Under Test (SUT).
+The SUT needs to be an Access Point and a backend network.
+
+### Requirements
+The SUT must do the following:
+
+1. Support an 802.1X wireless network. The SSID can be "raatest" but is configurable.
+The RADIUS server must be the IP of the wired interface of the test bed.
+2. Support a wired network.
+3. Provide DHCP access to both wireless and wired clients. A test bed static IP
+for wired side may be supported in a future release.
+4. Support port forwarding back to test bed. The test bed wireless client will connect to a data server.
+The data server IP and port are configurable.
+
+### Test Bed Physical Setup
+1. Connect ethernet port on test bed (Raspberry Pi) to a wired port on SUT network and wait for IP.
+2. On SUT, broadcast "raatest" or other SSID that belongs to the SUT's 802.1X wireless network.
+3. SSH into and start the test bed, see [how to start script](#starting-the-test-bed).
+You will need to configure the test bed before executing the test suite(s).
+
+The diagram below shows the required connection to the SUT.
+
+```mermaid
+flowchart LR
+    subgraph testbed [Test Bed - Raspberry Pi]
+        eth[ETH Port]
+        wlan[WLAN Port]
+    end
+    subgraph sut [System Under Test]
+        ap([Access Point])
+        rs[router/switch]
+        ap --> rs
+    end
+    eth-->rs
+    wlan-.-wireless{{wireless}}-.->ap
+```
+Note: Wireless connection will be made during test execution.
+
+## Test Bed Architecture
+### Basic Operation
+The Test Bed does the following:
+1. Connect to a wireless access point over 802.1X by SSID matching. The access point is part of the System Under Test (SUT).
+2. Act as a RADIUS server. The RADIUS client is the SUT and points to the Test Bed.
+3. Download or upload data.
+4. Execute one or more test suits against a PCAP of RADIUS records that is generated prior to test execution.
+5. Generate a test bundle containing test report and data files.
+
+### Diagram
+The following diagram shows the operation of the Test Bed.
+
+```mermaid
+flowchart LR
+    subgraph output [Output]
+        logs
+        pcap
+        report
+    end
+    subgraph testbed [Test Bed]
+        app[app]--start/stop-->wpa_supplicant
+        app--generate-->output
+        app--start/stop-->FreeRADIUS
+        app--start/stop-->DataServer[Data Server]
+        app--execute-->test_cases
+        test_cases-->pcap
+        filebrowser[FileBrowser] --> output
+    end
+    subgraph sut [System Under Test]
+    ap[Access Point / Controller]
+    dse[Data Server Endpoint]
+    dsepf[Port Forward]
+    dse --> dsepf
+    end
+    wpa_supplicant-.-dot1x{{802.1X}}-.->ap
+    app-.-dtw{{Data Transfer via Wi-Fi}}-.->dse
+    dsepf---dt{{Data Transfer via Wired}}--->DataServer
+    ap--RADIUS-->FreeRADIUS
+
+```
+
 ## Test Cases
 
 ### Attribute Checks
@@ -128,11 +209,11 @@ Purpose is to verify reported attribute values are accurate.
 4. Input packet count is non-zero.
 5. Output packet count is non-zero.
 
-### Run Demo
+## Help Option
 
-### Help
+### Usage
 
-Use the `--help` option to see all available options.
+Use the `--help` option to see all available options when using command line.
 
 ```bash
 python3 appcli.py --help
