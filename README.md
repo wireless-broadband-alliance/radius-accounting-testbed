@@ -96,25 +96,26 @@ Where `data_server_ip` and `data_server_port` are the IP and port to forward tra
 ## System Under Test (SUT)
 ### Introduction
 The Test Bed will run a series of tests against the System Under Test (SUT).
-The SUT will need to be an Access Point and a backend network.
+The SUT needs to be an Access Point and a backend network.
 
 ### Requirements
 The SUT must do the following:
 
 1. Support an 802.1X wireless network. The SSID can be "raatest" but is configurable.
-The RADIUS server must point back to the wired IP of the Test Bed.
+The RADIUS server must be the IP of the wired interface of the test bed.
 2. Support a wired network.
-3. Provide DHCP access to both wireless and wired clients. Test Bed Static IP
+3. Provide DHCP access to both wireless and wired clients. test bed Static IP
 for wired side may be supported in a future release.
-4. Support port forwarding back to Test Bed. The Test Bed wireless client will connect to a data server.
+4. Support port forwarding back to test bed. The test bed wireless client will connect to a data server.
 The data server IP and port are configurable.
 
 ### Test Bed Physical Setup
-1. Connect ethernet port on Test Bed (Raspberry Pi) to a wired port on network and wait for IP.
-2. On SUT, broadcast "raatest" or other SSID that belongs to the 802.1X wireless network.
+1. Connect ethernet port on test bed (Raspberry Pi) to a wired port on network and wait for IP.
+2. On SUT, broadcast "raatest" or other SSID that belongs to the SUT's 802.1X wireless network.
 3. SSH into and start the test bed, see [how to start script](#starting-the-test-bed).
 You will need to configure the test bed before executing the test suite(s).
 
+The diagram below shows the required connection to the SUT.
 
 ```mermaid
 flowchart LR
@@ -138,7 +139,7 @@ The Test Bed does the following:
 1. Connect to a wireless access point over 802.1X by SSID matching. The access point is part of the System Under Test (SUT).
 2. Act as a RADIUS server. The RADIUS client is the SUT and points to the Test Bed.
 3. Download or upload data.
-4. Generate and run a series of tests against the PCAP.
+4. Execute one or more test suits against a PCAP of RADIUS records that is generated prior to test execution.
 5. Generate a test bundle containing test report and data files.
 
 ### Diagram
