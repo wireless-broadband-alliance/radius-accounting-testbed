@@ -11,7 +11,6 @@ from raatestbed.test_setup import DEFAULT_WIRELESS_IFACE
 from raatestbed.test_setup import DEFAULT_WIRED_IFACE
 
 
-
 def parse_cliargs():
     parser = argparse.ArgumentParser()
     parser.add_argument("test_name", type=str, help="Name of the test to run")
@@ -22,10 +21,13 @@ def parse_cliargs():
         "data_server_port", type=int, help="Port of the server to get data from"
     )
     parser.add_argument(
+        "--config", type=str, help="Optional config file to get input from"
+    )
+    parser.add_argument(
         "--markers",
         type=str,
         default="core",
-        help=f"Test Markers: core, core-upload, core-download, openroaming (default)"
+        help="Test Markers: core, core-upload, core-download, openroaming (default)",
     )
     parser.add_argument(
         "--interface",
@@ -55,15 +57,9 @@ def parse_cliargs():
     parser.add_argument(
         "--ssid", type=str, default=DEFAULT_SSID, help=f"default: {DEFAULT_SSID}"
     )
-    parser.add_argument(
-        "--sut_firmware", type=str, default="", help=f"SUT firmware"
-    )
-    parser.add_argument(
-        "--sut_make", type=str, default="", help=f"SUT make"
-    )
-    parser.add_argument(
-        "--sut_model", type=str, default="", help=f"SUT model"
-    )
+    parser.add_argument("--sut_firmware", type=str, default="", help=f"SUT firmware")
+    parser.add_argument("--sut_make", type=str, default="", help=f"SUT make")
+    parser.add_argument("--sut_model", type=str, default="", help=f"SUT model")
     parser.add_argument(
         "--wireless_interface",
         type=str,
@@ -107,6 +103,7 @@ def select_markers():
 
     return ", ".join(selected_options), " or ".join(selected_options)
 
+
 def user_wants_to_continue(prompt_message):
     user_input = input(f"{prompt_message} (yes/no): ").strip().lower()
 
@@ -138,24 +135,31 @@ def main():
     logger = logging.getLogger(__name__)
     ts.setup_logging(cliargs_orig.debug)
     markers = cliargs["markers"].split(",")
-    config = ts.TestConfig(
-        test_name=cliargs["test_name"],
-        data_server_ip=cliargs["data_server_ip"],
-        data_server_port=cliargs["data_server_port"],
-        chunk_size=cliargs["chunk_size"],
-        chunks=cliargs["chunks"],
-        sut_make=cliargs["sut_make"],
-        sut_model=cliargs["sut_model"],
-        sut_firmware=cliargs["sut_firmware"],
-        data_server_listen_port=cliargs["data_server_listen_port"],
-        ssid=cliargs["ssid"],
-        generate_pcap=not cliargs["no_pcap"],
-        generate_report=not cliargs["no_test"],
-        markers=markers,
-        client_interface = cliargs["wireless_interface"],
-        server_interface = cliargs["wired_interface"],
-        local_output_directory=cliargs["root_dir"],
-    )
+
+    # Read config from config file
+    if cliargs["config"]:
+        config_file = ts.read_config_file(cliargs["config"])
+        config = config_file
+    # Read config from command line arguments
+    else:
+        config = ts.TestConfig(
+            test_name=cliargs["test_name"],
+            data_server_ip=cliargs["data_server_ip"],
+            data_server_port=cliargs["data_server_port"],
+            chunk_size=cliargs["chunk_size"],
+            chunks=cliargs["chunks"],
+            sut_make=cliargs["sut_make"],
+            sut_model=cliargs["sut_model"],
+            sut_firmware=cliargs["sut_firmware"],
+            data_server_listen_port=cliargs["data_server_listen_port"],
+            ssid=cliargs["ssid"],
+            generate_pcap=not cliargs["no_pcap"],
+            generate_report=not cliargs["no_test"],
+            markers=markers,
+            client_interface=cliargs["wireless_interface"],
+            server_interface=cliargs["wired_interface"],
+            local_output_directory=cliargs["root_dir"],
+        )
     config.write_yaml()
 
     # Generate PCAP.
