@@ -68,7 +68,7 @@ def number_input_chunk_size(value=DEFAULT_CHUNK_SIZE):
     )
 
 
-def number_input_num_chunks(value=1):
+def number_input_num_chunks(value=DEFAULT_CHUNKS):
     """Number of Chunks input field"""
     help = "Number of data chunks to be uploaded or downloaded."
     return int(
@@ -76,10 +76,10 @@ def number_input_num_chunks(value=1):
     )
 
 
-def text_input_data_server_listen_port(value="8000"):
+def text_input_data_server_listen_port(value=DEFAULT_DATA_SERVER_LISTEN_PORT) -> str:
     """Data Server Listen Port input field"""
     help = "Local port on the test bed to listen for data server connections. NOTE: This should be different from the data server port above. Your system under test network needs to forward ports from data_server_ip:data_server_port to this port."
-    return st.text_input("Data server listen port", value=value, help=help)
+    return st.text_input("Data server listen port", value=str(value), help=help)
 
 
 def text_input_ssid(value=DEFAULT_SSID):
@@ -88,32 +88,31 @@ def text_input_ssid(value=DEFAULT_SSID):
     return st.text_input("Wireless Network Name (SSID)", value=value, help=help)
 
 
-def text_input_sut_make(value=""):
+def text_input_sut_make(value=DEFAULT_SUT):
     """Brand of System Under Test (SUT)"""
     help = "Brand of System Under Test (SUT)"
     return st.text_input("SUT Make", value=value, help=help)
 
 
-def text_input_sut_model(value=""):
+def text_input_sut_model(value=DEFAULT_SUT):
     """Model of System Under Test (SUT)"""
     help = "Model of System Under Test (SUT)"
     return st.text_input("SUT Model", value=value, help=help)
 
 
-def text_input_sut_firmware(value=""):
+def text_input_sut_firmware(value=DEFAULT_SUT):
     """Firmware version of System Under Test (SUT)"""
     help = "Firmware version of System Under Test (SUT)"
     return st.text_input("SUT Firmware Version", value=value, help=help)
 
 
 def checkbox_select_test_parts(
-    value_generate_pcap=False, value_execute_test_cases=False
+    value_generate_pcap=DEFAULT_GENERATE_PCAP,
+    value_generate_report=DEFAULT_GENERATE_REPORT,
 ):
     """Checkbox to select which parts of the test to run"""
     generate_pcap = st.checkbox("Generate PCAP", value=value_generate_pcap)
-    execute_test_cases = st.checkbox(
-        "Execute Test Cases", value=value_execute_test_cases
-    )
+    execute_test_cases = st.checkbox("Execute Test Cases", value=value_generate_report)
     return generate_pcap, execute_test_cases
 
 
