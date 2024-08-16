@@ -13,9 +13,14 @@ from raatestbed.test_setup import DEFAULT_CHUNK_SIZE
 from raatestbed.test_setup import DEFAULT_SSID
 from raatestbed.test_setup import DEFAULT_WIRELESS_IFACE
 from raatestbed.test_setup import DEFAULT_WIRED_IFACE
+from raatestbed.test_setup import DEFAULT_DATA_SERVER_LISTEN_PORT
+from raatestbed.test_setup import DEFAULT_CHUNKS
+from raatestbed.test_setup import DEFAULT_SUT
+from raatestbed.test_setup import DEFAULT_GENERATE_PCAP
+from raatestbed.test_setup import DEFAULT_GENERATE_REPORT
 
 # TODO: dynamically generate tags/markers from pytest
-TEST_TAGS = ["core", "core-upload", "core-download", "openroaming"]
+TEST_TAGS = ["core", "core_upload", "core_download", "openroaming"]
 
 
 def get_selected_markers(possible_markers, checked_markers=[]) -> List[str]:

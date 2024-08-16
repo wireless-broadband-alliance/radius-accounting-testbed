@@ -2,6 +2,7 @@ import argparse
 import raatestbed.test_setup as ts
 import logging
 import pytest
+import yaml
 from raatests.extra_funcs import get_metadata
 
 from raatestbed.test_setup import DEFAULT_ROOT_DIR
@@ -9,6 +10,14 @@ from raatestbed.test_setup import DEFAULT_CHUNK_SIZE
 from raatestbed.test_setup import DEFAULT_SSID
 from raatestbed.test_setup import DEFAULT_WIRELESS_IFACE
 from raatestbed.test_setup import DEFAULT_WIRED_IFACE
+from raatestbed.test_setup import DEFAULT_DATA_SERVER_LISTEN_PORT
+from raatestbed.test_setup import DEFAULT_CHUNKS
+from raatestbed.test_setup import DEFAULT_SUT
+from raatestbed.test_setup import DEFAULT_GENERATE_PCAP
+from raatestbed.test_setup import DEFAULT_GENERATE_REPORT
+
+# TODO: dynamically generate tags/markers from pytest
+TEST_TAGS = ["core", "core_upload", "core_download", "openroaming"]
 
 
 def parse_cliargs():
@@ -26,50 +35,56 @@ def parse_cliargs():
     parser.add_argument(
         "--markers",
         type=str,
-        default="core",
+        default=None,
         help="Test Markers: core, core-upload, core-download, openroaming (default)",
     )
     parser.add_argument(
         "--interface",
         type=str,
-        default=DEFAULT_WIRELESS_IFACE,
+        default=None,
         help=f"Interface used to get data from (default: {DEFAULT_WIRELESS_IFACE})",
     )
     parser.add_argument("--debug", action="store_true")
     parser.add_argument(
-        "--data_server_listen_port", type=str, default=8000, help="default: 8000"
+        "--data_server_listen_port",
+        type=str,
+        default=None,
+        help=f"default: {DEFAULT_DATA_SERVER_LISTEN_PORT}",
     )
     parser.add_argument(
         "--root_dir",
         type=str,
-        default=DEFAULT_ROOT_DIR,
+        default=None,
         help=f"default: {DEFAULT_ROOT_DIR}",
     )
     parser.add_argument(
         "--chunk_size",
         type=int,
-        default=DEFAULT_CHUNK_SIZE,
+        default=None,
         help=f"default: {DEFAULT_CHUNK_SIZE}",
     )
     parser.add_argument(
-        "--chunks", type=int, default=1, help="Number of chunks to pull, default: 1"
+        "--chunks",
+        type=int,
+        default=None,
+        help=f"Number of chunks to pull, default: {DEFAULT_CHUNKS}",
     )
     parser.add_argument(
-        "--ssid", type=str, default=DEFAULT_SSID, help=f"default: {DEFAULT_SSID}"
+        "--ssid", type=str, default=None, help=f"default: {DEFAULT_SSID}"
     )
-    parser.add_argument("--sut_firmware", type=str, default="", help=f"SUT firmware")
-    parser.add_argument("--sut_make", type=str, default="", help=f"SUT make")
-    parser.add_argument("--sut_model", type=str, default="", help=f"SUT model")
+    parser.add_argument("--sut_firmware", type=str, default=None, help="SUT firmware")
+    parser.add_argument("--sut_make", type=str, default=None, help="SUT make")
+    parser.add_argument("--sut_model", type=str, default=None, help="SUT model")
     parser.add_argument(
         "--wireless_interface",
         type=str,
-        default=DEFAULT_WIRELESS_IFACE,
+        default=None,
         help=f"default: {DEFAULT_WIRELESS_IFACE}",
     )
     parser.add_argument(
         "--wired_interface",
         type=str,
-        default=DEFAULT_WIRED_IFACE,
+        default=None,
         help=f"default: {DEFAULT_WIRED_IFACE}",
     )
     parser.add_argument("--no_pcap", action="store_true", help="Skip PCAP generation")
@@ -77,31 +92,6 @@ def parse_cliargs():
         "--no_test", action="store_true", help="Skip test case execution"
     )
     return parser.parse_args()
-
-
-def select_markers():
-    """Select markers from a list."""
-
-    # TODO: These should be generated dynamically
-    options_mapping = {
-        "1": "core",
-        "2": "core_download",
-        "3": "core_upload",
-        "4": "openroaming",
-    }
-    print("\nSelect tests suite(s) from the list:")
-    for key, value in options_mapping.items():
-        print(f"{key}) {value}")
-    print("")
-
-    selected_options = []
-    user_input = input("Enter your options (comma-separated numbers): ")
-    selected_options = [
-        options_mapping.get(choice.strip(), "") for choice in user_input.split(",")
-    ]
-    selected_options = [option for option in selected_options if option]
-
-    return ", ".join(selected_options), " or ".join(selected_options)
 
 
 def user_wants_to_continue(prompt_message):
@@ -121,11 +111,124 @@ def execute_test_cases(config: ts.TestConfig, logger: logging.Logger):
     test_name = config.test_name
     metadata = get_metadata(test_name, config.pcap_dir)
     logger.info(f'\n\nMetadata for "{test_name}":\n{metadata.pretty_print_format()}\n')
-    markers_txt, markers = select_markers()
+    markers = " or ".join(config.markers)
+    markers_log = " ".join(config.markers)
     pytest_args = ["-v", "raatests", "--test_name", test_name]
     extra_args = ["-m", markers]
-    if user_wants_to_continue(f'Running test suites "{markers_txt}"'):
+    if user_wants_to_continue(f'Run test suites "{markers_log}"'):
         pytest.main(pytest_args + extra_args)
+
+
+def get_input_value(cliarg, default_value, configarg=None):
+    """Logic to decide which value to use based on the input."""
+    # Priority: CLI > Config > Default
+    if cliarg:
+        return cliarg
+    elif configarg:
+        return configarg
+    else:
+        return default_value
+
+
+def change_marker_format(markers: str, delim=",") -> list:
+    """Convert markers string to list."""
+    if not markers:
+        return []
+    return markers.split(delim)
+
+
+def get_testconfig_with_config_file(cliargs, configargs) -> ts.TestConfig:
+    """Create TestConfig object with CLI args WITH config file."""
+    cliargs["markers"] = change_marker_format(cliargs["markers"])
+    config = ts.TestConfig(
+        test_name=cliargs["test_name"],
+        data_server_ip=cliargs["data_server_ip"],
+        data_server_port=cliargs["data_server_port"],
+        chunk_size=int(
+            get_input_value(
+                cliargs["chunk_size"], DEFAULT_CHUNK_SIZE, configargs["chunk_size"]
+            )
+        ),
+        chunks=int(
+            get_input_value(cliargs["chunks"], DEFAULT_CHUNK_SIZE, configargs["chunks"])
+        ),
+        sut_make=get_input_value(
+            cliargs["sut_make"], DEFAULT_SUT, configargs["sut_make"]
+        ),
+        sut_model=get_input_value(
+            cliargs["sut_model"], DEFAULT_SUT, configargs["sut_model"]
+        ),
+        sut_firmware=get_input_value(
+            cliargs["sut_firmware"], DEFAULT_SUT, configargs["sut_firmware"]
+        ),
+        data_server_listen_port=int(
+            get_input_value(
+                cliargs["data_server_listen_port"],
+                DEFAULT_DATA_SERVER_LISTEN_PORT,
+                configargs["data_server_listen_port"],
+            )
+        ),
+        ssid=get_input_value(cliargs["ssid"], DEFAULT_SSID, configargs["ssid"]),
+        generate_pcap=get_input_value(
+            not cliargs["no_pcap"],
+            DEFAULT_GENERATE_PCAP,
+            configargs["generate_pcap"],
+        ),
+        generate_report=get_input_value(
+            not cliargs["no_test"],
+            DEFAULT_GENERATE_REPORT,
+            configargs["generate_report"],
+        ),
+        markers=get_input_value(cliargs["markers"], configargs["markers"], TEST_TAGS),
+        client_interface=get_input_value(
+            cliargs["wireless_interface"],
+            DEFAULT_WIRELESS_IFACE,
+            configargs["wireless_interface"],
+        ),
+        server_interface=get_input_value(
+            cliargs["wired_interface"],
+            DEFAULT_WIRED_IFACE,
+            configargs["wired_interface"],
+        ),
+        local_output_directory=get_input_value(
+            cliargs["root_dir"], DEFAULT_ROOT_DIR, configargs["root_dir"]
+        ),
+    )
+    return config
+
+
+def get_testconfig_without_config_file(cliargs) -> ts.TestConfig:
+    """Create TestConfig object with CLI args WITHOUT config file."""
+    cliargs["markers"] = change_marker_format(cliargs["markers"])
+    config = ts.TestConfig(
+        test_name=cliargs["test_name"],
+        data_server_ip=cliargs["data_server_ip"],
+        data_server_port=cliargs["data_server_port"],
+        chunk_size=int(get_input_value(cliargs["chunk_size"], DEFAULT_CHUNK_SIZE)),
+        chunks=int(get_input_value(cliargs["chunks"], DEFAULT_CHUNKS)),
+        data_server_listen_port=int(
+            get_input_value(
+                cliargs["data_server_listen_port"], DEFAULT_DATA_SERVER_LISTEN_PORT
+            )
+        ),
+        ssid=get_input_value(cliargs["ssid"], DEFAULT_SSID),
+        generate_pcap=get_input_value(not cliargs["no_pcap"], DEFAULT_GENERATE_PCAP),
+        generate_report=get_input_value(
+            not cliargs["no_test"], DEFAULT_GENERATE_REPORT
+        ),
+        markers=get_input_value(cliargs["markers"], TEST_TAGS),
+        client_interface=get_input_value(
+            cliargs["wireless_interface"], DEFAULT_WIRELESS_IFACE
+        ),
+        server_interface=get_input_value(
+            cliargs["wired_interface"], DEFAULT_WIRED_IFACE
+        ),
+        local_output_directory=get_input_value(cliargs["root_dir"], DEFAULT_ROOT_DIR),
+        sut_make=get_input_value(cliargs["sut_make"], DEFAULT_SUT),
+        sut_model=get_input_value(cliargs["sut_model"], DEFAULT_SUT),
+        sut_firmware=get_input_value(cliargs["sut_firmware"], DEFAULT_SUT),
+    )
+    return config
 
 
 def main():
@@ -134,40 +237,26 @@ def main():
     cliargs = vars(cliargs_orig)
     logger = logging.getLogger(__name__)
     ts.setup_logging(cliargs_orig.debug)
-    markers = cliargs["markers"].split(",")
 
-    # Read config from config file
+    # Create TestConfig object using CLI args WITH config file
     if cliargs["config"]:
-        config_file = ts.read_config_file(cliargs["config"])
-        config = config_file
-    # Read config from command line arguments
+        # config_file = ts.read_config_file(cliargs["config"])
+        config_file = cliargs["config"]
+        with open(config_file, "r") as file:
+            configargs = yaml.safe_load(file)
+        config = get_testconfig_with_config_file(cliargs, configargs)
+
+    # Create TestConfig object using CLI args WITHOUT config file
     else:
-        config = ts.TestConfig(
-            test_name=cliargs["test_name"],
-            data_server_ip=cliargs["data_server_ip"],
-            data_server_port=cliargs["data_server_port"],
-            chunk_size=cliargs["chunk_size"],
-            chunks=cliargs["chunks"],
-            sut_make=cliargs["sut_make"],
-            sut_model=cliargs["sut_model"],
-            sut_firmware=cliargs["sut_firmware"],
-            data_server_listen_port=cliargs["data_server_listen_port"],
-            ssid=cliargs["ssid"],
-            generate_pcap=not cliargs["no_pcap"],
-            generate_report=not cliargs["no_test"],
-            markers=markers,
-            client_interface=cliargs["wireless_interface"],
-            server_interface=cliargs["wired_interface"],
-            local_output_directory=cliargs["root_dir"],
-        )
+        config = get_testconfig_without_config_file(cliargs)
     config.write_yaml()
 
     # Generate PCAP.
-    if not cliargs["no_pcap"]:
+    if config.generate_pcap:
         ts.generate_pcap(config, logger)
 
     # Execute tests.
-    if not cliargs["no_test"]:
+    if config.generate_report:
         execute_test_cases(config, logger)
 
 
