@@ -52,7 +52,7 @@ def parse_cliargs():
         help=f"default: {DEFAULT_DATA_SERVER_LISTEN_PORT}",
     )
     parser.add_argument(
-        "--root_dir",
+        "--local_output_directory",
         type=str,
         default=None,
         help=f"default: {DEFAULT_ROOT_DIR}",
@@ -76,13 +76,13 @@ def parse_cliargs():
     parser.add_argument("--sut_make", type=str, default=None, help="SUT make")
     parser.add_argument("--sut_model", type=str, default=None, help="SUT model")
     parser.add_argument(
-        "--wireless_interface",
+        "--client_interface",
         type=str,
         default=None,
         help=f"default: {DEFAULT_WIRELESS_IFACE}",
     )
     parser.add_argument(
-        "--wired_interface",
+        "--server_interface",
         type=str,
         default=None,
         help=f"default: {DEFAULT_WIRED_IFACE}",
@@ -181,17 +181,19 @@ def get_testconfig_with_config_file(cliargs, configargs) -> ts.TestConfig:
         ),
         markers=get_input_value(cliargs["markers"], configargs["markers"], TEST_TAGS),
         client_interface=get_input_value(
-            cliargs["wireless_interface"],
+            cliargs["client_interface"],
             DEFAULT_WIRELESS_IFACE,
-            configargs["wireless_interface"],
+            configargs["client_interface"],
         ),
         server_interface=get_input_value(
-            cliargs["wired_interface"],
+            cliargs["server_interface"],
             DEFAULT_WIRED_IFACE,
-            configargs["wired_interface"],
+            configargs["server_interface"],
         ),
         local_output_directory=get_input_value(
-            cliargs["root_dir"], DEFAULT_ROOT_DIR, configargs["root_dir"]
+            cliargs["local_output_directory"],
+            DEFAULT_ROOT_DIR,
+            configargs["local_output_directory"],
         ),
     )
     return config
@@ -218,12 +220,14 @@ def get_testconfig_without_config_file(cliargs) -> ts.TestConfig:
         ),
         markers=get_input_value(cliargs["markers"], TEST_TAGS),
         client_interface=get_input_value(
-            cliargs["wireless_interface"], DEFAULT_WIRELESS_IFACE
+            cliargs["client_interface"], DEFAULT_WIRELESS_IFACE
         ),
         server_interface=get_input_value(
-            cliargs["wired_interface"], DEFAULT_WIRED_IFACE
+            cliargs["server_interface"], DEFAULT_WIRED_IFACE
         ),
-        local_output_directory=get_input_value(cliargs["root_dir"], DEFAULT_ROOT_DIR),
+        local_output_directory=get_input_value(
+            cliargs["local_output_directory"], DEFAULT_ROOT_DIR
+        ),
         sut_make=get_input_value(cliargs["sut_make"], DEFAULT_SUT),
         sut_model=get_input_value(cliargs["sut_model"], DEFAULT_SUT),
         sut_firmware=get_input_value(cliargs["sut_firmware"], DEFAULT_SUT),
