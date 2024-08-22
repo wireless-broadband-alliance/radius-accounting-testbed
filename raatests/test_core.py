@@ -167,13 +167,13 @@ class TestAccuracyChecks:
     @pytest.mark.core_upload
     def test_input_tonnage_accuracy(self, packets, metadata):
         """Input tonnage is accurate."""
-        large_upload_octets = metadata.chunks * metadata.chunk_size
+        large_upload_octets = int(metadata.chunks) * int(metadata.chunk_size)
         self.__tonnage_accuracy(large_upload_octets, packets, pe.get_total_input_octets)
 
     @pytest.mark.core_download
     def test_output_tonnage_accuracy(self, packets, metadata):
         """Output tonnage is accurate."""
-        large_download_octets = metadata.chunks * metadata.chunk_size
+        large_download_octets = int(metadata.chunks) * int(metadata.chunk_size)
         self.__tonnage_accuracy(
             large_download_octets, packets, pe.get_total_output_octets
         )
