@@ -224,9 +224,10 @@ python3 appcli.py --help
 There are several options available to the user. The following is the help output:
 
 ```bash
-usage: appcli.py [-h] [--markers MARKERS] [--interface INTERFACE] [--debug] [--data_server_listen_port DATA_SERVER_LISTEN_PORT] [--root_dir ROOT_DIR] [--chunk_size CHUNK_SIZE]
-                 [--chunks CHUNKS] [--ssid SSID] [--sut_firmware SUT_FIRMWARE] [--sut_make SUT_MAKE] [--sut_model SUT_MODEL] [--wireless_interface WIRELESS_INTERFACE]
-                 [--wired_interface WIRED_INTERFACE] [--no_pcap] [--no_test]
+usage: appcli.py [-h] [--config CONFIG] [--markers MARKERS] [--interface INTERFACE] [--debug]
+                 [--data_server_listen_port DATA_SERVER_LISTEN_PORT] [--local_output_directory LOCAL_OUTPUT_DIRECTORY]
+                 [--chunk_size CHUNK_SIZE] [--chunks CHUNKS] [--ssid SSID] [--sut_firmware SUT_FIRMWARE] [--sut_make SUT_MAKE]
+                 [--sut_model SUT_MODEL] [--client_interface CLIENT_INTERFACE] [--server_interface SERVER_INTERFACE] [--no_pcap] [--no_test]
                  test_name data_server_ip data_server_port
 
 positional arguments:
@@ -236,25 +237,27 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
+  --config CONFIG       Optional config file to get input from
   --markers MARKERS     Test Markers: core, core-upload, core-download, openroaming (default)
   --interface INTERFACE
                         Interface used to get data from (default: wlan0)
   --debug
   --data_server_listen_port DATA_SERVER_LISTEN_PORT
                         default: 8000
-  --root_dir ROOT_DIR   default: /usr/local/raa
+  --local_output_directory LOCAL_OUTPUT_DIRECTORY
+                        default: /usr/local/raa
   --chunk_size CHUNK_SIZE
                         default: 1048576
-  --chunks CHUNKS       Number of chunks to pull, default: 1
+  --chunks CHUNKS       Number of chunks to pull, default: 10
   --ssid SSID           default: raatest
   --sut_firmware SUT_FIRMWARE
                         SUT firmware
   --sut_make SUT_MAKE   SUT make
   --sut_model SUT_MODEL
                         SUT model
-  --wireless_interface WIRELESS_INTERFACE
+  --client_interface CLIENT_INTERFACE
                         default: wlan0
-  --wired_interface WIRED_INTERFACE
+  --server_interface SERVER_INTERFACE
                         default: eth0
   --no_pcap             Skip PCAP generation
   --no_test             Skip test case execution
