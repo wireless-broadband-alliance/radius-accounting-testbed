@@ -17,10 +17,17 @@ DEFAULT_WIRELESS_IFACE = "wlan0"
 DEFAULT_WIRED_IFACE = "eth0"
 DEFAULT_CHUNK_SIZE = 1024**2
 DEFAULT_SSID = "raatest"
+DEFAULT_DATA_SERVER_LISTEN_PORT = 8000
+DEFAULT_CHUNKS = 10
+DEFAULT_SUT = ""
+DEFAULT_GENERATE_PCAP = True
+DEFAULT_GENERATE_REPORT = True
+
 
 @dataclass
 class TestConfig:
     """Data class for storing test configuration"""
+
     test_name: str
     data_server_ip: str
     data_server_port: int
@@ -62,8 +69,15 @@ class TestConfig:
         config_filename = f"{self.test_name}.config.yaml"
         config = os.path.join(self.configs_dir, config_filename)
         logging.info(f"Writing test configuration to {config}")
-        with open(config, 'w') as file:
+        with open(config, "w") as file:
             yaml.dump(self.__to_dict__(), file)
+
+
+def read_config_file(filename: str) -> TestConfig:
+    """Read test configuration from a YAML file"""
+    with open(filename, "r") as file:
+        config = yaml.safe_load(file)
+    return TestConfig(**config)
 
 
 def setup_logging(debug):
@@ -73,7 +87,6 @@ def setup_logging(debug):
         )
     else:
         logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
-
 
 
 def create_dir_if_not_exists(directory):
@@ -86,10 +99,7 @@ def create_dir_if_not_exists(directory):
 class TestSetup:
     """Class that contains common methods and attributes for all tests."""
 
-    def __init__(self, 
-                 test_config: TestConfig, 
-                 logger: logging.Logger, 
-                 debug=False):
+    def __init__(self, test_config: TestConfig, logger: logging.Logger, debug=False):
         self.config = test_config
         self.debug = debug
         self.logger = logger
@@ -100,10 +110,12 @@ class TestSetup:
 
     def __create_dirs(self):
         """Create subdirectories for logs, pcap, configs, and reports"""
-        for dir in [self.logs_dir, 
-                    self.pcap_dir, 
-                    self.config.configs_dir, 
-                    self.config.reports_dir]:
+        for dir in [
+            self.logs_dir,
+            self.pcap_dir,
+            self.config.configs_dir,
+            self.config.reports_dir,
+        ]:
             create_dir_if_not_exists(dir)
 
     def __initialize_proc_vars(self):
@@ -156,7 +168,9 @@ class TestSetup:
         self.freeradius = procs.FreeRADIUS(
             log_location=self.freeradius_log, debug=self.debug
         )
-        self.data_server = TCPServer(self.config.data_server_listen_port, self.config.chunk_size)
+        self.data_server = TCPServer(
+            self.config.data_server_listen_port, self.config.chunk_size
+        )
 
         self.username = self.wpasupplicant.get_username()
 
@@ -200,11 +214,7 @@ class TestSetup:
         stop_proc(self.radius_tcpdump)
 
 
-
-
-def generate_pcap(test_config: TestConfig, 
-                  logger: logging.Logger, 
-                  debug=False):
+def generate_pcap(test_config: TestConfig, logger: logging.Logger, debug=False):
     """Run end-to-end test and generate PCAP + PCAP metadata."""
 
     test = TestSetup(test_config, debug=debug, logger=logger)
@@ -224,7 +234,7 @@ def generate_pcap(test_config: TestConfig,
             server_host=test_config.data_server_ip,
             server_port=test_config.data_server_port,
             chunk_size=test_config.chunk_size,
-            iface=test_config.client_interface
+            iface=test_config.client_interface,
         )
 
     # Data transfer completed, stop test.
@@ -254,4 +264,3 @@ def generate_pcap(test_config: TestConfig,
     logger.info(f'Writing metadata to file "{filename_withdir}"')
     with open(filename_withdir, "w") as f:
         json.dump(test_metadata_dict, f)
-
