@@ -2,7 +2,6 @@
 import json
 import os
 from datetime import datetime
-from glob import glob
 from dataclasses import dataclass
 
 
@@ -45,36 +44,50 @@ class Metadata:
         return json.dumps(self.get_dict(), indent=4)
 
 
-def __check_for_one_file(glob_pattern: str, file_type: str) -> str:
-    """Raise error if incorrect number of files found for a given test name."""
-    files = glob(glob_pattern)
-    # Check if there is exactly one metadata file, raise error otherwise
-    if len(files) == 0:
-        raise ValueError(f"No {file_type} file found, glob pattern: {glob_pattern}")
-    if len(files) != 1:
-        files_str = ", ".join(files)
-        raise ValueError(
-            f"More than one metadata file matches glob pattern {glob_pattern}: {files_str}"
-        )
-    assert len(files) == 1
-    return files[0]
+def get_metadata_dir(root_dir: str) -> str:
+    """Return metadata directory."""
+    return os.path.join(root_dir, "metadata")
 
 
-def get_metadata_loc(test_name, pcap_dir) -> str:
-    glob_pattern = os.path.join(pcap_dir, f"{test_name}*.metadata.json")
+def get_pcap_dir(root_dir: str) -> str:
+    """Return pcap directory."""
+    return os.path.join(root_dir, "pcap")
+
+
+def get_reports_dir(root_dir: str) -> str:
+    """Return report directory."""
+    return os.path.join(root_dir, "reports")
+
+
+def get_config_dir(root_dir: str) -> str:
+    """Return config directory."""
+    return os.path.join(root_dir, "config")
+
+
+def get_logs_dir(root_dir: str) -> str:
+    """Return logs directory."""
+    return os.path.join(root_dir, "logs")
+
+
+def get_metadata_filename(test_name, dir) -> str:
     """Return metadata file path for a given test name."""
-    return __check_for_one_file(glob_pattern, "metadata")
+    return os.path.join(dir, f"{test_name}.metadata.json")
 
 
-def get_pcap_loc(test_name, pcap_dir) -> str:
-    """Return PCAP file path for a given test name."""
-    glob_pattern = os.path.join(pcap_dir, f"{test_name}*.pcap")
-    return __check_for_one_file(glob_pattern, "PCAP")
+def get_pcap_filename(test_name, dir) -> str:
+    """Return pcap file path for a given test name."""
+    return os.path.join(dir, f"{test_name}.pcap")
 
 
-def get_metadata(test_name, pcap_dir) -> Metadata:
+def get_report_filename(test_name, dir) -> str:
+    """Return reports file path for a given test name."""
+    return os.path.join(dir, f"{test_name}.pdf")
+
+
+def get_metadata(test_name, root_dir) -> Metadata:
     """Convert metadata JSON file to Metadata object."""
-    metadata_loc = get_metadata_loc(test_name, pcap_dir)
-    with open(metadata_loc) as f:
+    metadata_dir = get_metadata_dir(root_dir)
+    metadata_file = get_metadata_filename(test_name, metadata_dir)
+    with open(metadata_file) as f:
         metadata_dict = json.load(f)
     return Metadata(**metadata_dict)
