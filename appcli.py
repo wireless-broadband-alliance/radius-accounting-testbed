@@ -4,17 +4,8 @@ import logging
 import pytest
 import yaml
 from raatests.extra_funcs import get_metadata
-
-from raatestbed.test_setup import DEFAULT_ROOT_DIR
-from raatestbed.test_setup import DEFAULT_CHUNK_SIZE
-from raatestbed.test_setup import DEFAULT_SSID
-from raatestbed.test_setup import DEFAULT_WIRELESS_IFACE
-from raatestbed.test_setup import DEFAULT_WIRED_IFACE
-from raatestbed.test_setup import DEFAULT_DATA_SERVER_LISTEN_PORT
-from raatestbed.test_setup import DEFAULT_CHUNKS
-from raatestbed.test_setup import DEFAULT_SUT
-from raatestbed.test_setup import DEFAULT_GENERATE_PCAP
-from raatestbed.test_setup import DEFAULT_GENERATE_REPORT
+import raatestbed.defaults as defaults
+from raatestbed.files import init_dirs
 
 # TODO: dynamically generate tags/markers from pytest
 TEST_TAGS = ["core", "core_upload", "core_download", "openroaming"]
@@ -42,35 +33,35 @@ def parse_cliargs():
         "--interface",
         type=str,
         default=None,
-        help=f"Interface used to get data from (default: {DEFAULT_WIRELESS_IFACE})",
+        help=f"Interface used to get data from (default: {defaults.WIRELESS_IFACE})",
     )
     parser.add_argument("--debug", action="store_true")
     parser.add_argument(
         "--data_server_listen_port",
         type=str,
         default=None,
-        help=f"default: {DEFAULT_DATA_SERVER_LISTEN_PORT}",
+        help=f"default: {defaults.DATA_SERVER_LISTEN_PORT}",
     )
     parser.add_argument(
         "--local_output_directory",
         type=str,
         default=None,
-        help=f"default: {DEFAULT_ROOT_DIR}",
+        help=f"default: {defaults.ROOT_DIR}",
     )
     parser.add_argument(
         "--chunk_size",
         type=int,
         default=None,
-        help=f"default: {DEFAULT_CHUNK_SIZE}",
+        help=f"default: {defaults.CHUNK_SIZE}",
     )
     parser.add_argument(
         "--chunks",
         type=int,
         default=None,
-        help=f"Number of chunks to pull, default: {DEFAULT_CHUNKS}",
+        help=f"Number of chunks to pull, default: {defaults.CHUNKS}",
     )
     parser.add_argument(
-        "--ssid", type=str, default=None, help=f"default: {DEFAULT_SSID}"
+        "--ssid", type=str, default=None, help=f"default: {defaults.SSID}"
     )
     parser.add_argument("--sut_firmware", type=str, default=None, help="SUT firmware")
     parser.add_argument("--sut_make", type=str, default=None, help="SUT make")
@@ -79,13 +70,13 @@ def parse_cliargs():
         "--client_interface",
         type=str,
         default=None,
-        help=f"default: {DEFAULT_WIRELESS_IFACE}",
+        help=f"default: {defaults.WIRELESS_IFACE}",
     )
     parser.add_argument(
         "--server_interface",
         type=str,
         default=None,
-        help=f"default: {DEFAULT_WIRED_IFACE}",
+        help=f"default: {defaults.WIRED_IFACE}",
     )
     parser.add_argument("--no_pcap", action="store_true", help="Skip PCAP generation")
     parser.add_argument(
@@ -109,7 +100,7 @@ def user_wants_to_continue(prompt_message):
 def execute_test_cases(config: ts.TestConfig, logger: logging.Logger):
     """Run tests against PCAP."""
     test_name = config.test_name
-    metadata = get_metadata(test_name, config.pcap_dir)
+    metadata = get_metadata(test_name, config.local_output_directory)
     logger.info(f'\n\nMetadata for "{test_name}":\n{metadata.pretty_print_format()}\n')
     markers = " or ".join(config.markers)
     markers_log = " ".join(config.markers)
@@ -146,53 +137,55 @@ def get_testconfig_with_config_file(cliargs, configargs) -> ts.TestConfig:
         data_server_port=cliargs["data_server_port"],
         chunk_size=int(
             get_input_value(
-                cliargs["chunk_size"], DEFAULT_CHUNK_SIZE, configargs["chunk_size"]
+                cliargs["chunk_size"], defaults.CHUNK_SIZE, configargs["chunk_size"]
             )
         ),
         chunks=int(
-            get_input_value(cliargs["chunks"], DEFAULT_CHUNK_SIZE, configargs["chunks"])
+            get_input_value(
+                cliargs["chunks"], defaults.CHUNK_SIZE, configargs["chunks"]
+            )
         ),
         sut_make=get_input_value(
-            cliargs["sut_make"], DEFAULT_SUT, configargs["sut_make"]
+            cliargs["sut_make"], defaults.SUT, configargs["sut_make"]
         ),
         sut_model=get_input_value(
-            cliargs["sut_model"], DEFAULT_SUT, configargs["sut_model"]
+            cliargs["sut_model"], defaults.SUT, configargs["sut_model"]
         ),
         sut_firmware=get_input_value(
-            cliargs["sut_firmware"], DEFAULT_SUT, configargs["sut_firmware"]
+            cliargs["sut_firmware"], defaults.SUT, configargs["sut_firmware"]
         ),
         data_server_listen_port=int(
             get_input_value(
                 cliargs["data_server_listen_port"],
-                DEFAULT_DATA_SERVER_LISTEN_PORT,
+                defaults.DATA_SERVER_LISTEN_PORT,
                 configargs["data_server_listen_port"],
             )
         ),
-        ssid=get_input_value(cliargs["ssid"], DEFAULT_SSID, configargs["ssid"]),
+        ssid=get_input_value(cliargs["ssid"], defaults.SSID, configargs["ssid"]),
         generate_pcap=get_input_value(
             not cliargs["no_pcap"],
-            DEFAULT_GENERATE_PCAP,
+            defaults.GENERATE_PCAP,
             configargs["generate_pcap"],
         ),
         generate_report=get_input_value(
             not cliargs["no_test"],
-            DEFAULT_GENERATE_REPORT,
+            defaults.GENERATE_REPORT,
             configargs["generate_report"],
         ),
         markers=get_input_value(cliargs["markers"], configargs["markers"], TEST_TAGS),
         client_interface=get_input_value(
             cliargs["client_interface"],
-            DEFAULT_WIRELESS_IFACE,
+            defaults.WIRELESS_IFACE,
             configargs["client_interface"],
         ),
         server_interface=get_input_value(
             cliargs["server_interface"],
-            DEFAULT_WIRED_IFACE,
+            defaults.WIRED_IFACE,
             configargs["server_interface"],
         ),
         local_output_directory=get_input_value(
             cliargs["local_output_directory"],
-            DEFAULT_ROOT_DIR,
+            defaults.ROOT_DIR,
             configargs["local_output_directory"],
         ),
     )
@@ -206,31 +199,31 @@ def get_testconfig_without_config_file(cliargs) -> ts.TestConfig:
         test_name=cliargs["test_name"],
         data_server_ip=cliargs["data_server_ip"],
         data_server_port=cliargs["data_server_port"],
-        chunk_size=int(get_input_value(cliargs["chunk_size"], DEFAULT_CHUNK_SIZE)),
-        chunks=int(get_input_value(cliargs["chunks"], DEFAULT_CHUNKS)),
+        chunk_size=int(get_input_value(cliargs["chunk_size"], defaults.CHUNK_SIZE)),
+        chunks=int(get_input_value(cliargs["chunks"], defaults.CHUNKS)),
         data_server_listen_port=int(
             get_input_value(
-                cliargs["data_server_listen_port"], DEFAULT_DATA_SERVER_LISTEN_PORT
+                cliargs["data_server_listen_port"], defaults.DATA_SERVER_LISTEN_PORT
             )
         ),
-        ssid=get_input_value(cliargs["ssid"], DEFAULT_SSID),
-        generate_pcap=get_input_value(not cliargs["no_pcap"], DEFAULT_GENERATE_PCAP),
+        ssid=get_input_value(cliargs["ssid"], defaults.SSID),
+        generate_pcap=get_input_value(not cliargs["no_pcap"], defaults.GENERATE_PCAP),
         generate_report=get_input_value(
-            not cliargs["no_test"], DEFAULT_GENERATE_REPORT
+            not cliargs["no_test"], defaults.GENERATE_REPORT
         ),
         markers=get_input_value(cliargs["markers"], TEST_TAGS),
         client_interface=get_input_value(
-            cliargs["client_interface"], DEFAULT_WIRELESS_IFACE
+            cliargs["client_interface"], defaults.WIRELESS_IFACE
         ),
         server_interface=get_input_value(
-            cliargs["server_interface"], DEFAULT_WIRED_IFACE
+            cliargs["server_interface"], defaults.WIRED_IFACE
         ),
         local_output_directory=get_input_value(
-            cliargs["local_output_directory"], DEFAULT_ROOT_DIR
+            cliargs["local_output_directory"], defaults.ROOT_DIR
         ),
-        sut_make=get_input_value(cliargs["sut_make"], DEFAULT_SUT),
-        sut_model=get_input_value(cliargs["sut_model"], DEFAULT_SUT),
-        sut_firmware=get_input_value(cliargs["sut_firmware"], DEFAULT_SUT),
+        sut_make=get_input_value(cliargs["sut_make"], defaults.SUT),
+        sut_model=get_input_value(cliargs["sut_model"], defaults.SUT),
+        sut_firmware=get_input_value(cliargs["sut_firmware"], defaults.SUT),
     )
     return config
 
@@ -253,6 +246,10 @@ def main():
     # Create TestConfig object using CLI args WITHOUT config file
     else:
         config = get_testconfig_without_config_file(cliargs)
+
+    # Create directories
+    logger.info(f"Creating subdirectories in {config.local_output_directory}")
+    init_dirs(config.local_output_directory)
     config.write_yaml()
 
     # Generate PCAP.
