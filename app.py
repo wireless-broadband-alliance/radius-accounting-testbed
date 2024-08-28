@@ -1,3 +1,5 @@
+"""Streamlit UI for RADIUS Accounting Assurance Test Bed"""
+
 import streamlit as st
 import logging
 import raatestbed.test_setup as ts

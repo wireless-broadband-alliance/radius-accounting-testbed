@@ -1,16 +1,19 @@
+"""Contains test setup-related imports."""
+
 import time
 import os
 import logging
 import subprocess
-import raatestbed.processes as procs
 import yaml
 import json
-import raatests.extra_funcs as ef
-import raatestbed.files as files
 from datetime import datetime
 from typing import List
 from dataclasses import dataclass
+
+import raatestbed.processes as procs
+import raatestbed.files as files
 from raatestbed.data_transfer import TCPServer, get_data_chunk
+from raatestbed.metadata import Metadata
 
 
 @dataclass
@@ -239,7 +242,7 @@ def generate_pcap(test_config: TestConfig, logger: logging.Logger, debug=False):
     filename_withdir = files.get_metadata_filename(
         test_config.test_name, test_config.local_output_directory
     )
-    test_metadata = ef.Metadata(
+    test_metadata = Metadata(
         username=test.username,
         session_duration=session_duration,
         chunk_size=str(test_config.chunk_size),

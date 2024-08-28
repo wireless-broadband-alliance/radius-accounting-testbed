@@ -1,7 +1,9 @@
+"""Contains metadata-related imports."""
+
 import json
 from datetime import datetime
 from dataclasses import dataclass
-from raatestbed.files import get_metadata_dir, get_metadata_filename
+from raatestbed.files import get_metadata_filename
 
 
 @dataclass

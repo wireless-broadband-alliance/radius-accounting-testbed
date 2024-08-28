@@ -1,7 +1,7 @@
+"""Helpful functions for dealing with RADIUS messages from Scapy PCAP"""
+
 from scapy.all import rdpcap, Radius
 from typing import List, Union
-
-# from IPython import embed
 
 
 def get_radius_packets(pcap_file: str) -> List[Radius]:
@@ -181,10 +181,3 @@ def get_acct_session_time(packet: Radius) -> list:
 def calculate_total_octets(octets: int, gigawords: int) -> int:
     """Calculate total Acct-*-Octets and Acct-*-Gigawords."""
     return octets + (gigawords * 2**32)
-
-
-if __name__ == "__main__":
-    username = "1542aeee-0c55-404c-badf-ccc5093d10ca@example.com"
-    input_pcap = "pcaps/test_dl_5gb.tcpdump.radius.pcap"
-    packets = get_relevant_packets(input_pcap, username)
-    # embed()

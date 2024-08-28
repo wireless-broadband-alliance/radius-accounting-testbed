@@ -1,3 +1,5 @@
+"""Contains process-related imports."""
+
 from string import Template
 from uuid import uuid4
 import subprocess
@@ -6,6 +8,7 @@ import signal
 import os
 import threading
 import logging
+from raatestbed.defaults import SSID as DEFAULT_SSID
 
 
 class Command:
@@ -66,7 +69,7 @@ class WpaSupplicant(Command):
         self,
         interface,
         log_location,
-        ssid="raatest",
+        ssid=DEFAULT_SSID,
         wait_time=5,
         config_location="/tmp/wpa_supplicant.conf",
     ):

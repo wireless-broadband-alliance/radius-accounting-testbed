@@ -1,9 +1,11 @@
+"""CLI for RADIUS Accounting Assurance Test Bed"""
+
 import argparse
 import raatestbed.test_setup as ts
 import logging
 import pytest
 import yaml
-from raatests.extra_funcs import get_metadata
+from raatestbed.metadata import get_metadata
 import raatestbed.defaults as defaults
 from raatestbed.files import init_dirs
 

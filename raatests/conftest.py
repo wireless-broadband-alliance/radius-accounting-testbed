@@ -1,4 +1,3 @@
-# content of conftest.py
 import pytest
 import os
 import sys
@@ -7,11 +6,11 @@ from zipfile import ZipFile
 from typing import List
 from scapy.all import Radius
 from fpdf import FPDF, XPos, YPos
-import extra_funcs as ef
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import raatestbed.pcap_extract as pe
 import raatestbed.files as files
+from raatestbed.metadata import Metadata, get_metadata
 from raatestbed.defaults import ROOT_DIR as DEFAULT_ROOT_DIR
 
 
@@ -35,7 +34,7 @@ def pytest_addoption(parser):
 
 
 class PDF(FPDF):
-    def __init__(self, test_name: str, metadata: ef.Metadata):
+    def __init__(self, test_name: str, metadata: Metadata):
         super().__init__(orientation="L")
         self.test_name = test_name
         self.metadata = metadata
@@ -129,7 +128,7 @@ class CustomPDFReportPlugin:
         test_name = session.config.getoption(ARGNAME_TEST_NAME)
 
         # Raise errors if the files are not found
-        metadata = ef.get_metadata(test_name, root_dir)
+        metadata = get_metadata(test_name, root_dir)
 
         # Create table headers
         markers_title = "Marker(s)"
@@ -302,7 +301,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "core_download: basic tests for download")
     config.addinivalue_line("markers", "openroaming: openroaming tests")
     pcap_file = files.get_pcap_filename(test_name, root_dir)
-    metadata_file = ef.get_metadata_filename(test_name, root_dir)
+    metadata_file = files.get_metadata_filename(test_name, root_dir)
     # Check both files exist
     assert os.path.exists(pcap_file), f"PCAP file not found: {pcap_file}"
     assert os.path.exists(metadata_file), f"Metadata file not found: {metadata_file}"
@@ -318,11 +317,11 @@ def pytest_unconfigure(config):
 
 
 @pytest.fixture
-def metadata(request) -> ef.Metadata:
+def metadata(request) -> Metadata:
     """Return metadata for a given test name."""
     test_name = request.config.getoption(ARGNAME_TEST_NAME)
     root_dir = request.config.getoption(ARGNAME_ROOT_DIR)
-    return ef.get_metadata(test_name, root_dir)
+    return get_metadata(test_name, root_dir)
 
 
 @pytest.fixture
@@ -330,7 +329,7 @@ def packets(request) -> List[Radius]:
     """Return relevant packets from PCAP file."""
     test_name = request.config.getoption(ARGNAME_TEST_NAME)
     root_dir = request.config.getoption(ARGNAME_ROOT_DIR)
-    metadata = ef.get_metadata(test_name, root_dir)
+    metadata = get_metadata(test_name, root_dir)
     username = metadata.username
     pcap_file = files.get_pcap_filename(test_name, root_dir)
     pcap = pe.get_relevant_packets(pcap_file, username)

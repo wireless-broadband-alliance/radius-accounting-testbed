@@ -1,3 +1,5 @@
+"""Contains imports for data transfer between two hosts."""
+
 import socket
 import logging
 import threading
@@ -101,13 +103,3 @@ class TCPServer:
         # Get data chunk to stop the server, send out of lo (internally) so it won't contribute to usage in accounting.
         get_data_chunk("127.0.0.1", self.port, 1)
         self.server_thread = None
-
-
-if __name__ == "__main__":
-    logging.basicConfig(
-        level=logging.DEBUG, format="%(asctime)s - %(levelname)s: %(message)s"
-    )
-
-    server = TCPServer(12347, 1024**2)
-    server.start()
-    get_data_chunk("127.0.0.1", 12347, 1024**2, "wlp0s20f3")
