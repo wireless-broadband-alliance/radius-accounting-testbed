@@ -33,9 +33,9 @@ class TestConfig:
     client_interface: str
     server_interface: str
     local_output_directory: str
-    sut_make: str
-    sut_model: str
-    sut_firmware: str
+    sut_brand: str
+    sut_hardware: str
+    sut_software: str
 
     @property
     def pcap_dir(self):
@@ -247,9 +247,9 @@ def generate_pcap(test_config: TestConfig, logger: logging.Logger, debug=False):
         session_duration=session_duration,
         chunk_size=str(test_config.chunk_size),
         chunks=str(chunks),
-        sut_make=test_config.sut_make,
-        sut_model=test_config.sut_model,
-        sut_firmware=test_config.sut_firmware,
+        sut_brand=test_config.sut_brand,
+        sut_hardware=test_config.sut_hardware,
+        sut_software=test_config.sut_software,
         start_time=start_time,
         end_time=end_time,
     )

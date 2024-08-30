@@ -94,11 +94,14 @@ python appcli.py test <data_server_ip> <data_server_port>
 Where `data_server_ip` and `data_server_port` are the IP and port to forward traffic through the AP network (System Under Test) to the data server on the Pi.
 
 ## System Under Test (SUT)
+
 ### Introduction
+
 The Test Bed will run a series of tests against the System Under Test (SUT).
 The SUT needs to be an Access Point and a backend network.
 
 ### Requirements
+
 The SUT must do the following:
 
 1. Support an 802.1X wireless network. The SSID can be "raatest" but is configurable.
@@ -110,6 +113,7 @@ for wired side may be supported in a future release.
 The data server IP and port are configurable.
 
 ### Test Bed Physical Setup
+
 1. Connect ethernet port on test bed (Raspberry Pi) to a wired port on SUT network and wait for IP.
 2. On SUT, broadcast "raatest" or other SSID that belongs to the SUT's 802.1X wireless network.
 3. SSH into and start the test bed, see [how to start script](#starting-the-test-bed).
@@ -131,11 +135,15 @@ flowchart LR
     eth-->rs
     wlan-.-wireless{{wireless}}-.->ap
 ```
+
 Note: Wireless connection will be made during test execution.
 
 ## Test Bed Architecture
+
 ### Basic Operation
+
 The Test Bed does the following:
+
 1. Connect to a wireless access point over 802.1X by SSID matching. The access point is part of the System Under Test (SUT).
 2. Act as a RADIUS server. The RADIUS client is the SUT and points to the Test Bed.
 3. Download or upload data.
@@ -143,6 +151,7 @@ The Test Bed does the following:
 5. Generate a test bundle containing test report and data files.
 
 ### Diagram
+
 The following diagram shows the operation of the Test Bed.
 
 ```mermaid
@@ -226,8 +235,8 @@ There are several options available to the user. The following is the help outpu
 ```bash
 usage: appcli.py [-h] [--config CONFIG] [--markers MARKERS] [--interface INTERFACE] [--debug]
                  [--data_server_listen_port DATA_SERVER_LISTEN_PORT] [--local_output_directory LOCAL_OUTPUT_DIRECTORY]
-                 [--chunk_size CHUNK_SIZE] [--chunks CHUNKS] [--ssid SSID] [--sut_firmware SUT_FIRMWARE] [--sut_make SUT_MAKE]
-                 [--sut_model SUT_MODEL] [--client_interface CLIENT_INTERFACE] [--server_interface SERVER_INTERFACE] [--no_pcap] [--no_test]
+                 [--chunk_size CHUNK_SIZE] [--chunks CHUNKS] [--ssid SSID] [--sut_software SUT_software] [--sut_brand SUT_BRAND]
+                 [--sut_hardware SUT_hardware] [--client_interface CLIENT_INTERFACE] [--server_interface SERVER_INTERFACE] [--no_pcap] [--no_test]
                  test_name data_server_ip data_server_port
 
 positional arguments:
@@ -250,11 +259,11 @@ options:
                         default: 1048576
   --chunks CHUNKS       Number of chunks to pull, default: 10
   --ssid SSID           default: raatest
-  --sut_firmware SUT_FIRMWARE
-                        SUT firmware
-  --sut_make SUT_MAKE   SUT make
-  --sut_model SUT_MODEL
-                        SUT model
+  --sut_software SUT_software
+                        SUT software
+  --sut_brand SUT_BRAND   SUT brand
+  --sut_hardware SUT_hardware
+                        SUT hardware
   --client_interface CLIENT_INTERFACE
                         default: wlan0
   --server_interface SERVER_INTERFACE

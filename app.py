@@ -80,22 +80,22 @@ def text_input_ssid(value=defaults.SSID):
     return st.text_input("Wireless Network Name (SSID)", value=value, help=help)
 
 
-def text_input_sut_make(value=defaults.SUT):
+def text_input_sut_brand(value=defaults.SUT):
     """Brand of System Under Test (SUT)"""
     help = "Brand of System Under Test (SUT)"
-    return st.text_input("SUT Make", value=value, help=help)
-
-
-def text_input_sut_model(value=defaults.SUT):
-    """Model of System Under Test (SUT)"""
-    help = "Model of System Under Test (SUT)"
     return st.text_input("SUT Model", value=value, help=help)
 
 
-def text_input_sut_firmware(value=defaults.SUT):
-    """Firmware version of System Under Test (SUT)"""
-    help = "Firmware version of System Under Test (SUT)"
-    return st.text_input("SUT Firmware Version", value=value, help=help)
+def text_input_sut_hardware(value=defaults.SUT):
+    """hardware of System Under Test (SUT)"""
+    help = "Hardware info for System Under Test (SUT)"
+    return st.text_input("SUT Hardware", value=value, help=help)
+
+
+def text_input_sut_software(value=defaults.SUT):
+    """software version of System Under Test (SUT)"""
+    help = "Software info for System Under Test (SUT)"
+    return st.text_input("SUT Software", value=value, help=help)
 
 
 def checkbox_select_test_parts(
@@ -175,9 +175,9 @@ with st.form(key="main"):
             data["data_server_listen_port"]
         )
         ssid = text_input_ssid(data["ssid"])
-        sut_make = text_input_sut_make(data["sut_make"])
-        sut_model = text_input_sut_model(data["sut_model"])
-        sut_firmware = text_input_sut_firmware(data["sut_firmware"])
+        sut_brand = text_input_sut_brand(data["sut_brand"])
+        sut_hardware = text_input_sut_hardware(data["sut_hardware"])
+        sut_software = text_input_sut_software(data["sut_software"])
         checkbox_generate_pcap, checkbox_execute_test_cases = (
             checkbox_select_test_parts(data["generate_pcap"], data["generate_report"])
         )
@@ -196,9 +196,9 @@ with st.form(key="main"):
         chunks = number_input_num_chunks()
         data_server_listen_port = text_input_data_server_listen_port()
         ssid = text_input_ssid()
-        sut_make = text_input_sut_make()
-        sut_model = text_input_sut_model()
-        sut_firmware = text_input_sut_firmware()
+        sut_brand = text_input_sut_brand()
+        sut_hardware = text_input_sut_hardware()
+        sut_software = text_input_sut_software()
         # PCAP generation + report selection
         checkbox_generate_pcap, checkbox_execute_test_cases = (
             checkbox_select_test_parts()
@@ -224,9 +224,9 @@ with st.form(key="main"):
             chunks=chunks,
             data_server_listen_port=int(data_server_listen_port),
             ssid=ssid,
-            sut_make=sut_make,
-            sut_model=sut_model,
-            sut_firmware=sut_firmware,
+            sut_brand=sut_brand,
+            sut_hardware=sut_hardware,
+            sut_software=sut_software,
             generate_pcap=checkbox_generate_pcap,
             generate_report=checkbox_execute_test_cases,
             markers=markers,

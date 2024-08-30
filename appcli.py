@@ -65,9 +65,21 @@ def parse_cliargs():
     parser.add_argument(
         "--ssid", type=str, default=None, help=f"default: {defaults.SSID}"
     )
-    parser.add_argument("--sut_firmware", type=str, default=None, help="SUT firmware")
-    parser.add_argument("--sut_make", type=str, default=None, help="SUT make")
-    parser.add_argument("--sut_model", type=str, default=None, help="SUT model")
+    parser.add_argument(
+        "--sut_software",
+        type=str,
+        default=None,
+        help="Software info for System Under Test (SUT)",
+    )
+    parser.add_argument(
+        "--sut_brand", type=str, default=None, help="Brand of System Under Test (SUT)"
+    )
+    parser.add_argument(
+        "--sut_hardware",
+        type=str,
+        default=None,
+        help="Hardware info for System Under Test (SUT)",
+    )
     parser.add_argument(
         "--client_interface",
         type=str,
@@ -147,14 +159,14 @@ def get_testconfig_with_config_file(cliargs, configargs) -> ts.TestConfig:
                 cliargs["chunks"], defaults.CHUNK_SIZE, configargs["chunks"]
             )
         ),
-        sut_make=get_input_value(
-            cliargs["sut_make"], defaults.SUT, configargs["sut_make"]
+        sut_brand=get_input_value(
+            cliargs["sut_brand"], defaults.SUT, configargs["sut_brand"]
         ),
-        sut_model=get_input_value(
-            cliargs["sut_model"], defaults.SUT, configargs["sut_model"]
+        sut_hardware=get_input_value(
+            cliargs["sut_hardware"], defaults.SUT, configargs["sut_hardware"]
         ),
-        sut_firmware=get_input_value(
-            cliargs["sut_firmware"], defaults.SUT, configargs["sut_firmware"]
+        sut_software=get_input_value(
+            cliargs["sut_software"], defaults.SUT, configargs["sut_software"]
         ),
         data_server_listen_port=int(
             get_input_value(
@@ -223,9 +235,9 @@ def get_testconfig_without_config_file(cliargs) -> ts.TestConfig:
         local_output_directory=get_input_value(
             cliargs["local_output_directory"], defaults.ROOT_DIR
         ),
-        sut_make=get_input_value(cliargs["sut_make"], defaults.SUT),
-        sut_model=get_input_value(cliargs["sut_model"], defaults.SUT),
-        sut_firmware=get_input_value(cliargs["sut_firmware"], defaults.SUT),
+        sut_brand=get_input_value(cliargs["sut_brand"], defaults.SUT),
+        sut_hardware=get_input_value(cliargs["sut_hardware"], defaults.SUT),
+        sut_software=get_input_value(cliargs["sut_software"], defaults.SUT),
     )
     return config
 
