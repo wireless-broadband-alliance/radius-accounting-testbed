@@ -1,27 +1,19 @@
+"""Contains test setup-related imports."""
+
 import time
 import os
 import logging
 import subprocess
-import raatestbed.processes as procs
 import yaml
 import json
-from raatests.extra_funcs import Metadata
 from datetime import datetime
 from typing import List
 from dataclasses import dataclass
+
+import raatestbed.processes as procs
+import raatestbed.files as files
 from raatestbed.data_transfer import TCPServer, get_data_chunk
-
-
-DEFAULT_ROOT_DIR = "/usr/local/raa"
-DEFAULT_WIRELESS_IFACE = "wlan0"
-DEFAULT_WIRED_IFACE = "eth0"
-DEFAULT_CHUNK_SIZE = 1024**2
-DEFAULT_SSID = "raatest"
-DEFAULT_DATA_SERVER_LISTEN_PORT = 8000
-DEFAULT_CHUNKS = 10
-DEFAULT_SUT = ""
-DEFAULT_GENERATE_PCAP = True
-DEFAULT_GENERATE_REPORT = True
+from raatestbed.metadata import Metadata
 
 
 @dataclass
@@ -47,27 +39,26 @@ class TestConfig:
 
     @property
     def pcap_dir(self):
-        return os.path.join(self.local_output_directory, "pcap")
+        return files.get_pcap_dir(self.local_output_directory)
 
     @property
     def logs_dir(self):
-        return os.path.join(self.local_output_directory, "logs")
+        return files.get_logs_dir(self.local_output_directory)
 
     @property
     def reports_dir(self):
-        return os.path.join(self.local_output_directory, "reports")
+        return files.get_reports_dir(self.local_output_directory)
 
     @property
     def configs_dir(self):
-        return os.path.join(self.local_output_directory, "config")
+        return files.get_config_dir(self.local_output_directory)
 
     def __to_dict__(self):
         return self.__dict__
 
     def write_yaml(self):
         """Write test configuration to a YAML file"""
-        config_filename = f"{self.test_name}.config.yaml"
-        config = os.path.join(self.configs_dir, config_filename)
+        config = files.get_config_filename(self.test_name, self.local_output_directory)
         logging.info(f"Writing test configuration to {config}")
         with open(config, "w") as file:
             yaml.dump(self.__to_dict__(), file)
@@ -90,7 +81,6 @@ def setup_logging(debug):
 
 
 def create_dir_if_not_exists(directory):
-    """Check if network interface has IP"""
     if not os.path.exists(directory):
         logging.info(f"Creating directory {directory}")
         os.makedirs(directory)
@@ -105,6 +95,7 @@ class TestSetup:
         self.logger = logger
         self.logs_dir = self.config.logs_dir
         self.pcap_dir = self.config.pcap_dir
+        self.root_dir = self.config.local_output_directory
         self.__create_dirs()
         self.__initialize_proc_vars()
 
@@ -141,15 +132,17 @@ class TestSetup:
     def __initialize_output_locations(self):
         """Initialize output locations for logs and pcap files"""
         test_name = self.config.test_name
-        self.radius_tcpdump_log = os.path.join(
-            self.logs_dir, f"{test_name}.tcpdump.radius.log"
+        self.radius_tcpdump_log = files.get_tcpdump_log_filename(
+            test_name, self.root_dir
         )
-        self.freeradius_log = os.path.join(self.logs_dir, f"{test_name}.freeradius.log")
-        self.radius_pcap_location = os.path.join(
-            self.pcap_dir, f"{test_name}.tcpdump.radius.pcap"
+        self.freeradius_log = files.get_freeradius_log_filename(
+            self.config.test_name, self.root_dir
         )
-        self.wpa_supplicant_log = os.path.join(
-            self.logs_dir, f"{test_name}.wpa_supplicant.log"
+        self.radius_pcap_location = files.get_pcap_filename(
+            self.config.test_name, self.root_dir
+        )
+        self.wpa_supplicant_log = files.get_wpasupplicant_log_filename(
+            self.config.test_name, self.root_dir
         )
 
     def __initialize_proc_objs(self):
@@ -246,8 +239,9 @@ def generate_pcap(test_config: TestConfig, logger: logging.Logger, debug=False):
     test.stop()
 
     # Write test metadata to file.
-    filename = f"{test_config.test_name}.metadata.json"
-    filename_withdir = os.path.join(test.pcap_dir, filename)
+    filename_withdir = files.get_metadata_filename(
+        test_config.test_name, test_config.local_output_directory
+    )
     test_metadata = Metadata(
         username=test.username,
         session_duration=session_duration,

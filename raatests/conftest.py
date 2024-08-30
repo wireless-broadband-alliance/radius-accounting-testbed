@@ -1,34 +1,32 @@
-# content of conftest.py
 import pytest
 import os
 import sys
 import logging
-from glob import glob
 from zipfile import ZipFile
 from typing import List
 from scapy.all import Radius
-from extra_funcs import get_metadata_loc, get_pcap_loc, get_metadata, Metadata
 from fpdf import FPDF, XPos, YPos
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import raatestbed.pcap_extract as pe
+import raatestbed.files as files
+from raatestbed.metadata import Metadata, get_metadata
+from raatestbed.defaults import ROOT_DIR as DEFAULT_ROOT_DIR
+
+
+ARGNAME_ROOT_DIR = "--root_dir"
+ARGNAME_TEST_NAME = "--test_name"
 
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--pcap_dir",
+        ARGNAME_ROOT_DIR,
         action="store",
-        default="/usr/local/raa/pcap",
-        help="Directory to find PCAP and metadata files",
+        default=DEFAULT_ROOT_DIR,
+        help="Directory to find test files",
     )
     parser.addoption(
-        "--report_dir",
-        action="store",
-        default="/usr/local/raa/reports",
-        help="Directory to store reports",
-    )
-    parser.addoption(
-        "--test_name",
+        ARGNAME_TEST_NAME,
         action="store",
         required=True,
         help="Name of test",
@@ -126,12 +124,11 @@ class CustomPDFReportPlugin:
 
     def pytest_sessionfinish(self, session):
         """After the test is finished, generate a PDF report with test results."""
-        report_dir = session.config.getoption("--report_dir")
-        pcap_dir = session.config.getoption("--pcap_dir")
-        test_name = session.config.getoption("--test_name")
+        root_dir = session.config.getoption(ARGNAME_ROOT_DIR)
+        test_name = session.config.getoption(ARGNAME_TEST_NAME)
 
         # Raise errors if the files are not found
-        metadata = get_metadata(test_name, pcap_dir)
+        metadata = get_metadata(test_name, root_dir)
 
         # Create table headers
         markers_title = "Marker(s)"
@@ -272,52 +269,43 @@ class CustomPDFReportPlugin:
             )
 
         # Write PDF to file
-        report_fullpath = os.path.join(report_dir, f"{test_name}.report.pdf")
+        report_fullpath = files.get_report_filename(test_name, root_dir)
         logging.info(f"Writing report to {report_fullpath}")
         pdf.output(report_fullpath)
         logging.info(f"Report written to {report_fullpath}")
 
 
-def create_zip_archive(archive_name, root_dir, patterns):
+def create_zip_archive(zip_file_name, root_dir, files_to_zip):
     """Create a ZIP archive from files matching the given patterns."""
-    files = []
-    for pattern in patterns:
-        files.extend(glob(os.path.join(root_dir, pattern)))
-    with ZipFile(archive_name, "w") as zipf:
-        for file in files:
-            zipf.write(file, arcname=file.removeprefix(root_dir))
-    logging.info(f"Wrote ZIP archive to {archive_name}")
+    with ZipFile(zip_file_name, "w") as zipf:
+        for file_to_zip in files_to_zip:
+            zipf.write(file_to_zip, arcname=file_to_zip.removeprefix(root_dir))
+    logging.info(f"Wrote ZIP archive to {zip_file_name}")
 
 
 def pytest_sessionfinish(session, exitstatus):
     """Run after the test session and plugins are finished."""
-
-    def add_root_path(path):
-        return os.path.join("/usr/local/raa", path)
-
-    # Package files into zip archive
-    test_name = session.config.getoption("--test_name")
-    patterns = [
-        add_root_path(f"logs/{test_name}.*"),
-        add_root_path(f"pcap/{test_name}.*"),
-        add_root_path(f"reports/{test_name}.*"),
-        add_root_path(f"config/{test_name}.*"),
-    ]
-    zip_file_name = f"/usr/local/raa/{test_name}.bundle.zip"
-    create_zip_archive(zip_file_name, root_dir="/usr/local/raa", patterns=patterns)
+    test_name = session.config.getoption(ARGNAME_TEST_NAME)
+    root_dir = session.config.getoption(ARGNAME_ROOT_DIR)
+    zip_file_name = files.get_zipped_bundle_filename(test_name, root_dir)
+    files_to_zip = files.get_all_files(test_name, root_dir)
+    create_zip_archive(zip_file_name, root_dir=root_dir, files_to_zip=files_to_zip)
 
 
 def pytest_configure(config):
     """Do preliminary checks to ensure there are PCAP and metadata files before test execution. Also load plugins."""
-    test_name = config.getoption("--test_name")
-    pcap_dir = config.getoption("--pcap_dir")
+    test_name = config.getoption(ARGNAME_TEST_NAME)
+    root_dir = config.getoption(ARGNAME_ROOT_DIR)
     config.addinivalue_line("markers", "core: basic tests")
     config.addinivalue_line("markers", "core_upload: basic tests for upload")
     config.addinivalue_line("markers", "core_download: basic tests for download")
     config.addinivalue_line("markers", "openroaming: openroaming tests")
+    pcap_file = files.get_pcap_filename(test_name, root_dir)
+    metadata_file = files.get_metadata_filename(test_name, root_dir)
+    # Check both files exist
+    assert os.path.exists(pcap_file), f"PCAP file not found: {pcap_file}"
+    assert os.path.exists(metadata_file), f"Metadata file not found: {metadata_file}"
     # These functions will raise errors if the files are not found
-    _ = get_metadata_loc(test_name, pcap_dir)
-    _ = get_pcap_loc(test_name, pcap_dir)
     config.pluginmanager.register(CustomPDFReportPlugin())
 
 
@@ -331,18 +319,18 @@ def pytest_unconfigure(config):
 @pytest.fixture
 def metadata(request) -> Metadata:
     """Return metadata for a given test name."""
-    test_name = request.config.getoption("--test_name")
-    directory = request.config.getoption("--pcap_dir")
-    return get_metadata(test_name, directory)
+    test_name = request.config.getoption(ARGNAME_TEST_NAME)
+    root_dir = request.config.getoption(ARGNAME_ROOT_DIR)
+    return get_metadata(test_name, root_dir)
 
 
 @pytest.fixture
 def packets(request) -> List[Radius]:
     """Return relevant packets from PCAP file."""
-    test_name = request.config.getoption("--test_name")
-    directory = request.config.getoption("--pcap_dir")
-    metadata = get_metadata(test_name, directory)
+    test_name = request.config.getoption(ARGNAME_TEST_NAME)
+    root_dir = request.config.getoption(ARGNAME_ROOT_DIR)
+    metadata = get_metadata(test_name, root_dir)
     username = metadata.username
-    pcap_loc = get_pcap_loc(test_name, directory)
-    pcap = pe.get_relevant_packets(pcap_loc, username)
+    pcap_file = files.get_pcap_filename(test_name, root_dir)
+    pcap = pe.get_relevant_packets(pcap_file, username)
     return pcap

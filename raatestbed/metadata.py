@@ -1,9 +1,9 @@
-# content of conftest.py
+"""Contains metadata-related imports."""
+
 import json
-import os
 from datetime import datetime
-from glob import glob
 from dataclasses import dataclass
+from raatestbed.files import get_metadata_filename
 
 
 @dataclass
@@ -45,36 +45,9 @@ class Metadata:
         return json.dumps(self.get_dict(), indent=4)
 
 
-def __check_for_one_file(glob_pattern: str, file_type: str) -> str:
-    """Raise error if incorrect number of files found for a given test name."""
-    files = glob(glob_pattern)
-    # Check if there is exactly one metadata file, raise error otherwise
-    if len(files) == 0:
-        raise ValueError(f"No {file_type} file found, glob pattern: {glob_pattern}")
-    if len(files) != 1:
-        files_str = ", ".join(files)
-        raise ValueError(
-            f"More than one metadata file matches glob pattern {glob_pattern}: {files_str}"
-        )
-    assert len(files) == 1
-    return files[0]
-
-
-def get_metadata_loc(test_name, pcap_dir) -> str:
-    glob_pattern = os.path.join(pcap_dir, f"{test_name}*.metadata.json")
-    """Return metadata file path for a given test name."""
-    return __check_for_one_file(glob_pattern, "metadata")
-
-
-def get_pcap_loc(test_name, pcap_dir) -> str:
-    """Return PCAP file path for a given test name."""
-    glob_pattern = os.path.join(pcap_dir, f"{test_name}*.pcap")
-    return __check_for_one_file(glob_pattern, "PCAP")
-
-
-def get_metadata(test_name, pcap_dir) -> Metadata:
+def get_metadata(test_name, root_dir) -> Metadata:
     """Convert metadata JSON file to Metadata object."""
-    metadata_loc = get_metadata_loc(test_name, pcap_dir)
-    with open(metadata_loc) as f:
+    metadata_file = get_metadata_filename(test_name, root_dir)
+    with open(metadata_file) as f:
         metadata_dict = json.load(f)
     return Metadata(**metadata_dict)

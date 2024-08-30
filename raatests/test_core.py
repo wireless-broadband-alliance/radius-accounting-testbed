@@ -1,6 +1,6 @@
 import raatestbed.pcap_extract as pe
 from scapy.all import Radius
-from typing import List, Callable, Tuple
+from typing import List, Callable
 import logging
 import pytest
 

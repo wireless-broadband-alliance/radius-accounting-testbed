@@ -1,3 +1,5 @@
+"""Streamlit UI for RADIUS Accounting Assurance Test Bed"""
+
 import streamlit as st
 import logging
 import raatestbed.test_setup as ts
@@ -7,17 +9,7 @@ import yaml
 from typing import List
 from streamlit.logger import get_logger
 from raatestbed.test_setup import TestConfig
-
-from raatestbed.test_setup import DEFAULT_ROOT_DIR
-from raatestbed.test_setup import DEFAULT_CHUNK_SIZE
-from raatestbed.test_setup import DEFAULT_SSID
-from raatestbed.test_setup import DEFAULT_WIRELESS_IFACE
-from raatestbed.test_setup import DEFAULT_WIRED_IFACE
-from raatestbed.test_setup import DEFAULT_DATA_SERVER_LISTEN_PORT
-from raatestbed.test_setup import DEFAULT_CHUNKS
-from raatestbed.test_setup import DEFAULT_SUT
-from raatestbed.test_setup import DEFAULT_GENERATE_PCAP
-from raatestbed.test_setup import DEFAULT_GENERATE_REPORT
+import raatestbed.defaults as defaults
 
 # TODO: dynamically generate tags/markers from pytest
 TEST_TAGS = ["core", "core_upload", "core_download", "openroaming"]
@@ -60,7 +52,7 @@ def text_input_data_server_port(value="") -> str:
     return st.text_input("Data Server Port", help=help)
 
 
-def number_input_chunk_size(value=DEFAULT_CHUNK_SIZE):
+def number_input_chunk_size(value=defaults.CHUNK_SIZE):
     """Chunk Size input field"""
     help = "Size of the data chunks to be uploaded or downloaded."
     return int(
@@ -68,7 +60,7 @@ def number_input_chunk_size(value=DEFAULT_CHUNK_SIZE):
     )
 
 
-def number_input_num_chunks(value=DEFAULT_CHUNKS):
+def number_input_num_chunks(value=defaults.CHUNKS):
     """Number of Chunks input field"""
     help = "Number of data chunks to be uploaded or downloaded."
     return int(
@@ -76,39 +68,39 @@ def number_input_num_chunks(value=DEFAULT_CHUNKS):
     )
 
 
-def text_input_data_server_listen_port(value=DEFAULT_DATA_SERVER_LISTEN_PORT) -> str:
+def text_input_data_server_listen_port(value=defaults.DATA_SERVER_LISTEN_PORT) -> str:
     """Data Server Listen Port input field"""
     help = "Local port on the test bed to listen for data server connections. NOTE: This should be different from the data server port above. Your system under test network needs to forward ports from data_server_ip:data_server_port to this port."
     return st.text_input("Data server listen port", value=str(value), help=help)
 
 
-def text_input_ssid(value=DEFAULT_SSID):
+def text_input_ssid(value=defaults.SSID):
     """SSID input field"""
     help = "SSID of the wireless network that the client will connect to."
     return st.text_input("Wireless Network Name (SSID)", value=value, help=help)
 
 
-def text_input_sut_make(value=DEFAULT_SUT):
+def text_input_sut_make(value=defaults.SUT):
     """Brand of System Under Test (SUT)"""
     help = "Brand of System Under Test (SUT)"
     return st.text_input("SUT Make", value=value, help=help)
 
 
-def text_input_sut_model(value=DEFAULT_SUT):
+def text_input_sut_model(value=defaults.SUT):
     """Model of System Under Test (SUT)"""
     help = "Model of System Under Test (SUT)"
     return st.text_input("SUT Model", value=value, help=help)
 
 
-def text_input_sut_firmware(value=DEFAULT_SUT):
+def text_input_sut_firmware(value=defaults.SUT):
     """Firmware version of System Under Test (SUT)"""
     help = "Firmware version of System Under Test (SUT)"
     return st.text_input("SUT Firmware Version", value=value, help=help)
 
 
 def checkbox_select_test_parts(
-    value_generate_pcap=DEFAULT_GENERATE_PCAP,
-    value_generate_report=DEFAULT_GENERATE_REPORT,
+    value_generate_pcap=defaults.GENERATE_PCAP,
+    value_generate_report=defaults.GENERATE_REPORT,
 ):
     """Checkbox to select which parts of the test to run"""
     generate_pcap = st.checkbox("Generate PCAP", value=value_generate_pcap)
@@ -116,19 +108,19 @@ def checkbox_select_test_parts(
     return generate_pcap, execute_test_cases
 
 
-def text_input_client_interface(default=DEFAULT_WIRELESS_IFACE):
+def text_input_client_interface(default=defaults.WIRELESS_IFACE):
     """Wireless interface input field"""
     help = "Wireless interface used by the 802.1X client."
     return st.text_input("Wireless Client Interface", value=default, help=help)
 
 
-def text_input_server_interface(default=DEFAULT_WIRED_IFACE):
+def text_input_server_interface(default=defaults.WIRED_IFACE):
     """Wired interface input field"""
     help = "Wired interface used by the RADIUS and data servers."
     return st.text_input("Wired Server Interface", value=default, help=help)
 
 
-def text_input_local_output_directory(default=DEFAULT_ROOT_DIR):
+def text_input_local_output_directory(default=defaults.ROOT_DIR):
     help = (
         "Local output directory on the test bed where the test results will be stored."
     )
