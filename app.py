@@ -18,7 +18,7 @@ TEST_TAGS = ["core", "core_upload", "core_download", "openroaming"]
 def get_selected_markers(possible_markers, checked_markers=[]) -> List[str]:
     """Returns a dictionary of selected pytest markers"""
     # Checkbox for selecting tests
-    st.header("Test Marker/Tag Selection")
+    st.header("Test Marker/Tag")
     results = dict()
     for marker in possible_markers:
         if marker in checked_markers:
@@ -98,11 +98,23 @@ def text_input_sut_software(value=defaults.SUT):
     return st.text_input("SUT Software", value=value, help=help)
 
 
+def checkbox_select_upload_download(
+    value_upload=defaults.UPLOAD_CHUNKS,
+    value_download=defaults.DOWNLOAD_CHUNKS,
+):
+    """Checkbox to select to upload and/or download chunks"""
+    st.header("Upload/Download")
+    generate_pcap = st.checkbox("Upload Chunks", value=value_upload)
+    execute_test_cases = st.checkbox("Download Chunks", value=value_download)
+    return generate_pcap, execute_test_cases
+
+
 def checkbox_select_test_parts(
     value_generate_pcap=defaults.GENERATE_PCAP,
     value_generate_report=defaults.GENERATE_REPORT,
 ):
     """Checkbox to select which parts of the test to run"""
+    st.header("Test Part")
     generate_pcap = st.checkbox("Generate PCAP", value=value_generate_pcap)
     execute_test_cases = st.checkbox("Execute Test Cases", value=value_generate_report)
     return generate_pcap, execute_test_cases
@@ -178,6 +190,11 @@ with st.form(key="main"):
         sut_brand = text_input_sut_brand(data["sut_brand"])
         sut_hardware = text_input_sut_hardware(data["sut_hardware"])
         sut_software = text_input_sut_software(data["sut_software"])
+        checkbox_upload_chunks, checkbox_download_chunks = (
+            checkbox_select_upload_download(
+                data["upload_chunks"], data["download_chunks"]
+            )
+        )
         checkbox_generate_pcap, checkbox_execute_test_cases = (
             checkbox_select_test_parts(data["generate_pcap"], data["generate_report"])
         )
@@ -199,6 +216,9 @@ with st.form(key="main"):
         sut_brand = text_input_sut_brand()
         sut_hardware = text_input_sut_hardware()
         sut_software = text_input_sut_software()
+        checkbox_upload_chunks, checkbox_download_chunks = (
+            checkbox_select_upload_download()
+        )
         # PCAP generation + report selection
         checkbox_generate_pcap, checkbox_execute_test_cases = (
             checkbox_select_test_parts()
@@ -229,6 +249,8 @@ with st.form(key="main"):
             sut_software=sut_software,
             generate_pcap=checkbox_generate_pcap,
             generate_report=checkbox_execute_test_cases,
+            upload_chunks=checkbox_generate_pcap,
+            download_chunks=checkbox_execute_test_cases,
             markers=markers,
             client_interface=client_interface,
             server_interface=server_interface,

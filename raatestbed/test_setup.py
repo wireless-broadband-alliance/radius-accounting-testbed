@@ -29,6 +29,8 @@ class TestConfig:
     ssid: str
     generate_pcap: bool
     generate_report: bool
+    upload_chunks: bool
+    download_chunks: bool
     markers: List[str]
     client_interface: str
     server_interface: str

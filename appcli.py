@@ -186,6 +186,16 @@ def get_testconfig_with_config_file(cliargs, configargs) -> ts.TestConfig:
             defaults.GENERATE_REPORT,
             configargs["generate_report"],
         ),
+        upload_chunks=get_input_value(
+            not cliargs["no_upload"],
+            defaults.UPLOAD_CHUNKS,
+            configargs["upload_chunks"],
+        ),
+        download_chunks=get_input_value(
+            not cliargs["no_download"],
+            defaults.DOWNLOAD_CHUNKS,
+            configargs["download_chunks"],
+        ),
         markers=get_input_value(cliargs["markers"], configargs["markers"], TEST_TAGS),
         client_interface=get_input_value(
             cliargs["client_interface"],
