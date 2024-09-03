@@ -21,8 +21,10 @@ class TestConfig:
     """Data class for storing test configuration"""
 
     test_name: str
-    data_server_ip: str
-    data_server_port: int
+    upload_data_server_ip: str
+    upload_data_server_port: int
+    download_data_server_ip: str
+    download_data_server_port: int
     chunk_size: int
     chunks: int
     data_server_listen_port: int
@@ -223,14 +225,28 @@ def generate_pcap(test_config: TestConfig, logger: logging.Logger, debug=False):
     logger.info(f"pulling {chunks} chunks")
     start_time = datetime.now()
     begin_data_transfer = time.perf_counter()
-    for num in range(chunks):
-        logger.info(f"pulling chunk {num+1} of {chunks}")
-        get_data_chunk(
-            server_host=test_config.data_server_ip,
-            server_port=test_config.data_server_port,
-            chunk_size=test_config.chunk_size,
-            iface=test_config.client_interface,
-        )
+    if test_config.download_chunks:
+        ip = test_config.download_data_server_ip
+        port = test_config.download_data_server_port
+        for num in range(chunks):
+            logger.info(f"downloading chunk {num+1} of {chunks} from {ip}:{port}")
+            get_data_chunk(
+                server_host=test_config.download_data_server_ip,
+                server_port=test_config.download_data_server_port,
+                chunk_size=test_config.chunk_size,
+                iface=test_config.client_interface,
+            )
+    if test_config.upload_chunks:
+        ip = test_config.upload_data_server_ip
+        port = test_config.upload_data_server_port
+        for num in range(chunks):
+            logger.info(f"uploading chunk {num+1} of {chunks} to {ip}:{port}")
+            get_data_chunk(
+                server_host=test_config.upload_data_server_ip,
+                server_port=test_config.upload_data_server_port,
+                chunk_size=test_config.chunk_size,
+                iface=test_config.client_interface,
+            )
 
     # Data transfer completed, stop test.
     end = time.perf_counter()

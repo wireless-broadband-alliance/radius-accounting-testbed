@@ -36,20 +36,40 @@ def text_input_test_name(value=None):
     return st.text_input("Test Name", help=help)
 
 
-def text_input_data_server_ip(value=None):
-    """Data Server IP input field"""
-    help = "This is the IP of the data server used for uploading or downloading chunks of data."
+def text_input_upload_data_server_ip(value=None):
+    """Data Server IP input field for upload"""
+    help = "This is the IP of the data server used for uploading chunks of data."
+    text = "Data Server IP for Upload"
     if isinstance(value, str):
-        return st.text_input("Data Server IP", value=value, help=help)
-    return st.text_input("Data Server IP", help=help)
+        return st.text_input(text, value=value, help=help)
+    return st.text_input(text, help=help)
 
 
-def text_input_data_server_port(value="") -> str:
-    """Data Server port input field"""
-    help = "This is the port of the data server used for uploading or downloading chunks of data."
+def text_input_download_data_server_ip(value=None):
+    """Data Server IP input field for download"""
+    help = "This is the IP of the data server used for downloading chunks of data."
+    text = "Data Server IP for Download"
+    if isinstance(value, str):
+        return st.text_input(text, value=value, help=help)
+    return st.text_input(text, help=help)
+
+
+def text_input_upload_data_server_port(value="") -> str:
+    """Data Server port input field for upload"""
+    help = "This is the port of the data server used for uploading chunks of data."
+    text = "Data Server Port for Upload"
     if value:
-        return st.text_input("Data Server Port", value=value, help=help)
-    return st.text_input("Data Server Port", help=help)
+        return st.text_input(text, value=value, help=help)
+    return st.text_input(text, help=help)
+
+
+def text_input_download_data_server_port(value="") -> str:
+    """Data Server port input field for download"""
+    help = "This is the port of the data server used for downloading chunks of data."
+    text = "Data Server Port for Download"
+    if value:
+        return st.text_input(text, value=value, help=help)
+    return st.text_input(text, help=help)
 
 
 def number_input_chunk_size(value=defaults.CHUNK_SIZE):
@@ -172,96 +192,115 @@ st.title("RADIUS Accounting Assurance Test Bed")
 uploaded_file = st.file_uploader("Upload config file", type=["yaml"])
 
 # Main form showing all inputs
-with st.form(key="main"):
-    st.header("Test Configuration")
+st.header("Test Configuration")
 
-    # If user uploaded config file, then present those values from the config
-    if uploaded_file is not None:
-        data = yaml.safe_load(uploaded_file)
-        test_name = text_input_test_name(data["test_name"])
-        data_server_ip = text_input_data_server_ip(data["data_server_ip"])
-        data_server_port = text_input_data_server_port(data["data_server_port"])
-        chunk_size = number_input_chunk_size(data["chunk_size"])
-        chunks = number_input_num_chunks(data["chunks"])
-        data_server_listen_port = text_input_data_server_listen_port(
-            data["data_server_listen_port"]
-        )
-        ssid = text_input_ssid(data["ssid"])
-        sut_brand = text_input_sut_brand(data["sut_brand"])
-        sut_hardware = text_input_sut_hardware(data["sut_hardware"])
-        sut_software = text_input_sut_software(data["sut_software"])
-        checkbox_upload_chunks, checkbox_download_chunks = (
-            checkbox_select_upload_download(
-                data["upload_chunks"], data["download_chunks"]
-            )
-        )
-        checkbox_generate_pcap, checkbox_execute_test_cases = (
-            checkbox_select_test_parts(data["generate_pcap"], data["generate_report"])
-        )
-        markers = get_selected_markers(TEST_TAGS, data["markers"])
-        client_interface = text_input_client_interface(data["client_interface"])
-        server_interface = text_input_server_interface(data["server_interface"])
-        local_output_directory = text_input_local_output_directory(
-            data["local_output_directory"]
-        )
+# Add defaults
+upload_data_server_ip = defaults.UPLOAD_DATA_SERVER_IP
+upload_data_server_port = defaults.UPLOAD_DATA_SERVER_PORT
+download_data_server_ip = defaults.DOWNLOAD_DATA_SERVER_IP
+download_data_server_port = defaults.DOWNLOAD_DATA_SERVER_PORT
 
-    else:
-        test_name = text_input_test_name()
-        data_server_ip = text_input_data_server_ip()
-        data_server_port = text_input_data_server_port()
-        chunk_size = number_input_chunk_size()
-        chunks = number_input_num_chunks()
-        data_server_listen_port = text_input_data_server_listen_port()
-        ssid = text_input_ssid()
-        sut_brand = text_input_sut_brand()
-        sut_hardware = text_input_sut_hardware()
-        sut_software = text_input_sut_software()
-        checkbox_upload_chunks, checkbox_download_chunks = (
-            checkbox_select_upload_download()
+# If user uploaded config file, then present those values from the config
+if uploaded_file is not None:
+    data = yaml.safe_load(uploaded_file)
+    test_name = text_input_test_name(data["test_name"])
+    chunk_size = number_input_chunk_size(data["chunk_size"])
+    chunks = number_input_num_chunks(data["chunks"])
+    data_server_listen_port = text_input_data_server_listen_port(
+        data["data_server_listen_port"]
+    )
+    ssid = text_input_ssid(data["ssid"])
+    sut_brand = text_input_sut_brand(data["sut_brand"])
+    sut_hardware = text_input_sut_hardware(data["sut_hardware"])
+    sut_software = text_input_sut_software(data["sut_software"])
+    checkbox_upload_chunks, checkbox_download_chunks = checkbox_select_upload_download(
+        data["upload_chunks"], data["download_chunks"]
+    )
+    if checkbox_upload_chunks:
+        upload_data_server_ip = text_input_upload_data_server_ip(
+            data["upload_data_server_ip"]
         )
-        # PCAP generation + report selection
-        checkbox_generate_pcap, checkbox_execute_test_cases = (
-            checkbox_select_test_parts()
+        upload_data_server_port = text_input_upload_data_server_port(
+            data["upload_data_server_port"]
         )
-        # Marker Selection
-        markers = get_selected_markers(TEST_TAGS)
-
-        # Advanced Settings
-        st.subheader("Advanced Settings")
-        client_interface = text_input_client_interface()
-        server_interface = text_input_server_interface()
-        local_output_directory = text_input_local_output_directory()
-
-    update_widget("")
-    # Button to start the tests
-    if st.form_submit_button("Run Tests"):
-        # Create the test configuration
-        config = TestConfig(
-            test_name=test_name,
-            data_server_ip=data_server_ip,
-            data_server_port=int(data_server_port),
-            chunk_size=chunk_size,
-            chunks=chunks,
-            data_server_listen_port=int(data_server_listen_port),
-            ssid=ssid,
-            sut_brand=sut_brand,
-            sut_hardware=sut_hardware,
-            sut_software=sut_software,
-            generate_pcap=checkbox_generate_pcap,
-            generate_report=checkbox_execute_test_cases,
-            upload_chunks=checkbox_generate_pcap,
-            download_chunks=checkbox_execute_test_cases,
-            markers=markers,
-            client_interface=client_interface,
-            server_interface=server_interface,
-            local_output_directory=local_output_directory,
+    if checkbox_download_chunks:
+        download_data_server_ip = text_input_download_data_server_ip(
+            data["download_data_server_ip"]
         )
-        config.write_yaml()
+        download_data_server_port = text_input_download_data_server_port(
+            data["download_data_server_port"]
+        )
+    checkbox_generate_pcap, checkbox_execute_test_cases = checkbox_select_test_parts(
+        data["generate_pcap"], data["generate_report"]
+    )
+    markers = get_selected_markers(TEST_TAGS, data["markers"])
+    client_interface = text_input_client_interface(data["client_interface"])
+    server_interface = text_input_server_interface(data["server_interface"])
+    local_output_directory = text_input_local_output_directory(
+        data["local_output_directory"]
+    )
 
-        logger = get_logger(__name__)
-        handler = StreamlitLogHandler(st.empty().code)
-        logger.addHandler(handler)
-        if checkbox_generate_pcap:
-            ts.generate_pcap(config, logger)
-        if checkbox_execute_test_cases:
-            execute_test_cases(config, logger, markers)
+else:
+    test_name = text_input_test_name()
+    chunk_size = number_input_chunk_size()
+    chunks = number_input_num_chunks()
+    data_server_listen_port = text_input_data_server_listen_port()
+    ssid = text_input_ssid()
+    sut_brand = text_input_sut_brand()
+    sut_hardware = text_input_sut_hardware()
+    sut_software = text_input_sut_software()
+    checkbox_upload_chunks, checkbox_download_chunks = checkbox_select_upload_download()
+    if checkbox_upload_chunks:
+        upload_data_server_ip = text_input_upload_data_server_ip()
+        upload_data_server_port = text_input_upload_data_server_port()
+    if checkbox_download_chunks:
+        download_data_server_ip = text_input_download_data_server_ip()
+        download_data_server_port = text_input_download_data_server_port()
+    if not checkbox_upload_chunks and not checkbox_download_chunks:
+        st.error("Please select at least one of the upload or download checkboxes.")
+    # PCAP generation + report selection
+    checkbox_generate_pcap, checkbox_execute_test_cases = checkbox_select_test_parts()
+    # Marker Selection
+    markers = get_selected_markers(TEST_TAGS)
+
+    # Advanced Settings
+    st.subheader("Advanced Settings")
+    client_interface = text_input_client_interface()
+    server_interface = text_input_server_interface()
+    local_output_directory = text_input_local_output_directory()
+
+update_widget("")
+# Button to start the tests
+if st.button("Run Tests"):
+    # Create the test configuration
+    config = TestConfig(
+        test_name=test_name,
+        upload_data_server_ip=upload_data_server_ip,
+        upload_data_server_port=int(upload_data_server_port),
+        download_data_server_ip=download_data_server_ip,
+        download_data_server_port=int(download_data_server_port),
+        chunk_size=chunk_size,
+        chunks=chunks,
+        data_server_listen_port=int(data_server_listen_port),
+        ssid=ssid,
+        sut_brand=sut_brand,
+        sut_hardware=sut_hardware,
+        sut_software=sut_software,
+        generate_pcap=checkbox_generate_pcap,
+        generate_report=checkbox_execute_test_cases,
+        upload_chunks=checkbox_generate_pcap,
+        download_chunks=checkbox_execute_test_cases,
+        markers=markers,
+        client_interface=client_interface,
+        server_interface=server_interface,
+        local_output_directory=local_output_directory,
+    )
+    config.write_yaml()
+
+    logger = get_logger(__name__)
+    handler = StreamlitLogHandler(st.empty().code)
+    logger.addHandler(handler)
+    if checkbox_generate_pcap:
+        ts.generate_pcap(config, logger)
+    if checkbox_execute_test_cases:
+        execute_test_cases(config, logger, markers)
