@@ -5,8 +5,6 @@ import logging
 import threading
 import netifaces
 
-# TODO: Support reverse direction of data transfer (client to server). Or just listen on different address.
-
 
 def get_interface_ip(interface_name):
     try:
@@ -15,91 +13,107 @@ def get_interface_ip(interface_name):
         ipv4_address = addresses[netifaces.AF_INET][0]["addr"]
         return ipv4_address
     except (KeyError, ValueError) as e:
-        print(f"Error: {e}")
-        raise e
-
-
-def get_data_chunk(server_host, server_port, chunk_size, iface=None):
-    """Client that connects to a server and receives data from it."""
-
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    if iface:
-        source_ip = get_interface_ip(iface)
-        logging.debug(f"Binding to interface {iface} with IP {source_ip}")
-        client_socket.setsockopt(socket.SOL_SOCKET, 25, iface.encode())
-        client_socket.bind((source_ip, 0))
-
-    try:
-        client_socket.connect((server_host, server_port))
-        logging.debug(f"Connected to server at {server_host}:{server_port}")
-        logging.debug(
-            f"Pulling {chunk_size} bytes of data from {server_host}:{server_port}"
-        )
-        while True:
-            data = client_socket.recv(chunk_size)
-            if not data:
-                break
-
-    except Exception as e:
         logging.error(f"Error: {e}")
-
-    finally:
-        client_socket.close()
+        raise e
 
 
 class TCPServer:
     """Server that listens for incoming connections and sends random data to clients."""
 
-    def __init__(self, port, chunk_size, host="0.0.0.0"):
+    def __init__(self, port, chunk_size, chunks, client_iface=None, host="0.0.0.0"):
         self.port = port
+        self.client_iface = client_iface
         self.chunk_size = chunk_size
+        self.chunks = chunks
         self.host = host
         self.server_thread = None
-        self.initialize_events()
-
-    def initialize_events(self):
-        self.stop_event = threading.Event()
         self.ready_for_conns = threading.Event()
 
-    def __tcp_server(self):
-        file_path = "/dev/random"
-        # Read data from file into memory.
-        with open(file_path, "rb") as file:
-            data = file.read(self.chunk_size)
-
-        # Listen for incoming connections.
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_socket.bind((self.host, self.port))
-        server_socket.listen()
-
-        logging.info(f"TCP data server is listening on {self.host}:{self.port}")
+    def __tcp_server(self, download=True):
+        """Server that listens for incoming connections and sends or receives random data to clients."""
+        logging.info("Starting TCP data server...")
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.bind((self.host, self.port))
+        server.listen(1)
         self.ready_for_conns.set()
 
-        while not self.stop_event.is_set():
-            conn, addr = server_socket.accept()
-            logging.debug(f"Connection established from {addr}")
+        client_sock, client_addr = server.accept()
+        logging.debug(f"Client connected from {client_addr}")
 
-            conn.sendall(data)
-            logging.debug(f"Sent {len(data)} bytes of random data")
-            conn.close()
-        logging.debug("TCP data server shutting down")
-
-    def start(self, background=True):
-        logging.info("Starting TCP data server...")
-        if background:
-            server_thread = threading.Thread(target=self.__tcp_server)
-            server_thread.start()
-            self.server_thread = server_thread
+        if download:
+            file_path = "/dev/random"
+            logging.debug("Download mode selected")
+            with open(file_path, "rb") as file:
+                data = file.read(self.chunk_size)
+            for num in range(self.chunks):
+                logging.info(f"Sending data chunk {num}")
+                client_sock.sendall(data)
         else:
-            self.__tcp_server()
+            logging.info("Upload mode selected")
+            for num in range(self.chunks):
+                logging.info(f"Receiving data chunk {num}")
+                data = client_sock.recv(self.chunk_size)
 
-        # Wait for the server to be ready for connections.
+        client_sock.close()
+        server.close()
+        logging.info("Connection closed")
+
+    def tcp_server_upload(self):
+        """Start the TCP server in upload mode."""
+        self.__tcp_server(download=False)
+
+    def tcp_server_download(self):
+        """Start the TCP server in download mode."""
+        self.__tcp_server(download=True)
+
+    def start(self, download=True):
+        """Start the TCP server in upload or download mode."""
+        if download:
+            self.download = True
+            thread = threading.Thread(target=self.tcp_server_download)
+        else:
+            self.download = False
+            thread = threading.Thread(target=self.tcp_server_upload)
+        thread.start()
         while not self.ready_for_conns.is_set():
             pass
+        logging.info("TCP data server started")
 
-    def stop(self):
-        logging.info("Stopping TCP data server...")
-        self.stop_event.set()
-        # Get data chunk to stop the server, send out of lo (internally) so it won't contribute to usage in accounting.
-        get_data_chunk("127.0.0.1", self.port, 1)
-        self.server_thread = None
+    def __connect_socket_with_interface(self):
+        """Connect to server and return socket binded to interface."""
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        iface = self.client_iface
+        if iface:
+            source_ip = get_interface_ip(iface)
+            logging.debug(f"Binding to interface {iface} with IP {source_ip}")
+            client_socket.setsockopt(socket.SOL_SOCKET, 25, iface.encode())
+            client_socket.bind((source_ip, 0))
+        try:
+            client_socket.connect((self.host, self.port))
+        except Exception as e:
+            logging.error(f"Error: {e}")
+        return client_socket
+
+    def __download_data_chunks(self):
+        """Client that connects to this server and receives data from it."""
+        client = self.__connect_socket_with_interface()
+        for _ in range(self.chunks):
+            client.recv(self.chunk_size)
+        client.close()
+
+    def __upload_data_chunks(self):
+        """Client that connects to this server and sends data to it."""
+        client = self.__connect_socket_with_interface()
+        file_path = "/dev/random"
+        with open(file_path, "rb") as file:
+            data = file.read(self.chunk_size)
+        for _ in range(self.chunks):
+            client.sendall(data)
+        client.close()
+
+    def transfer_data(self):
+        """Decide whether to download or upload data chunks based on self.download flag."""
+        if self.download:
+            self.__download_data_chunks()
+        else:
+            self.__upload_data_chunks()

@@ -115,7 +115,7 @@ def parse_cliargs():
     parser.add_argument(
         "--no_test", action="store_true", help="Skip test case execution"
     )
-    parser.add_argument("--no_upload", action="store_true", help="No not upload chunks")
+    parser.add_argument("--no_upload", action="store_true", help="Do not upload chunks")
     parser.add_argument(
         "--no_download", action="store_true", help="Do not download chunks"
     )
@@ -165,31 +165,30 @@ def change_marker_format(markers: str, delim=",") -> list:
     return markers.split(delim)
 
 
-def get_testconfig(cliargs, configargs) -> ts.TestConfig:
-    """Create TestConfig object with CLI args WITH config file."""
+def get_testconfig(cliargs, configargs, logger) -> ts.TestConfig:
+    """Create TestConfig object with CLI + config args"""
+
+    # Based on the input from CLI and config file, decide the values for TestConfig
+
     cliargs["markers"] = change_marker_format(cliargs["markers"])
+
+    # Decide if we need to upload/download chunks based on the data server IP
+    data_server_ip = get_input_value(
+        cliargs["data_server_ip"],
+        defaults.DATA_SERVER_IP,
+        configargs.get("data_server_ip"),
+    )
+    data_server_port = get_input_value(
+        cliargs["data_server_port"],
+        defaults.DATA_SERVER_PORT,
+        configargs.get("data_server_port"),
+    )
+
+    # Create test config object
     config = ts.TestConfig(
         test_name=cliargs["test_name"],
-        upload_data_server_ip=get_input_value(
-            cliargs["upload_data_server_ip"],
-            defaults.UPLOAD_DATA_SERVER_IP,
-            configargs.get("upload_data_server_ip"),
-        ),
-        upload_data_server_port=get_input_value(
-            cliargs["upload_data_server_port"],
-            defaults.UPLOAD_DATA_SERVER_PORT,
-            configargs.get("upload_data_server_port"),
-        ),
-        download_data_server_ip=get_input_value(
-            cliargs["download_data_server_ip"],
-            defaults.DOWNLOAD_DATA_SERVER_IP,
-            configargs.get("download_data_server_ip"),
-        ),
-        download_data_server_port=get_input_value(
-            cliargs["download_data_server_port"],
-            defaults.DOWNLOAD_DATA_SERVER_PORT,
-            configargs.get("download_data_server"),
-        ),
+        data_server_ip=data_server_ip,
+        data_server_port=data_server_port,
         chunk_size=int(
             get_input_value(
                 cliargs["chunk_size"], defaults.CHUNK_SIZE, configargs.get("chunk_size")
@@ -197,7 +196,7 @@ def get_testconfig(cliargs, configargs) -> ts.TestConfig:
         ),
         chunks=int(
             get_input_value(
-                cliargs["chunks"], defaults.CHUNK_SIZE, configargs.get("chunks")
+                cliargs["chunks"], defaults.CHUNKS, configargs.get("chunks")
             )
         ),
         sut_brand=get_input_value(
@@ -259,48 +258,6 @@ def get_testconfig(cliargs, configargs) -> ts.TestConfig:
     return config
 
 
-# def get_testconfig_without_config_file(cliargs) -> ts.TestConfig:
-#    """Create TestConfig object with CLI args WITHOUT config file."""
-#    cliargs["markers"] = change_marker_format(cliargs["markers"])
-#    config = ts.TestConfig(
-#        test_name=cliargs["test_name"],
-#        upload_data_server_ip=cliargs["upload_data_server_ip"],
-#        upload_data_server_port=cliargs["upload_data_server_port"],
-#        download_data_server_ip=cliargs["download_data_server_ip"],
-#        download_data_server_port=cliargs["download_data_server_port"],
-#        chunk_size=int(get_input_value(cliargs["chunk_size"], defaults.CHUNK_SIZE)),
-#        chunks=int(get_input_value(cliargs["chunks"], defaults.CHUNKS)),
-#        data_server_listen_port=int(
-#            get_input_value(
-#                cliargs["data_server_listen_port"], defaults.DATA_SERVER_LISTEN_PORT
-#            )
-#        ),
-#        ssid=get_input_value(cliargs["ssid"], defaults.SSID),
-#        generate_pcap=get_input_value(not cliargs["no_pcap"], defaults.GENERATE_PCAP),
-#        generate_report=get_input_value(
-#            not cliargs["no_test"], defaults.GENERATE_REPORT
-#        ),
-#        upload_chunks=get_input_value(not cliargs["no_upload"], defaults.UPLOAD_CHUNKS),
-#        download_chunks=get_input_value(
-#            not cliargs["no_download"], defaults.DOWNLOAD_CHUNKS
-#        ),
-#        markers=get_input_value(cliargs["markers"], TEST_TAGS),
-#        client_interface=get_input_value(
-#            cliargs["client_interface"], defaults.WIRELESS_IFACE
-#        ),
-#        server_interface=get_input_value(
-#            cliargs["server_interface"], defaults.WIRED_IFACE
-#        ),
-#        local_output_directory=get_input_value(
-#            cliargs["local_output_directory"], defaults.ROOT_DIR
-#        ),
-#        sut_brand=get_input_value(cliargs["sut_brand"], defaults.SUT),
-#        sut_hardware=get_input_value(cliargs["sut_hardware"], defaults.SUT),
-#        sut_software=get_input_value(cliargs["sut_software"], defaults.SUT),
-#    )
-#    return config
-
-
 def main():
     # Parse command line arguments and set up logging.
     cliargs_orig = parse_cliargs()
@@ -320,7 +277,7 @@ def main():
         config_file = cliargs["config"]
         with open(config_file, "r") as file:
             configargs = yaml.safe_load(file)
-    config = get_testconfig(cliargs, configargs)
+    config = get_testconfig(cliargs, configargs, logger)
 
     # Create directories
     logger.info(f"Creating subdirectories in {config.local_output_directory}")

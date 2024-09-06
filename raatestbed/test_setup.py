@@ -12,7 +12,7 @@ from dataclasses import dataclass
 
 import raatestbed.processes as procs
 import raatestbed.files as files
-from raatestbed.data_transfer import TCPServer, get_data_chunk
+from raatestbed.data_transfer import TCPServer
 from raatestbed.metadata import Metadata
 
 
@@ -21,10 +21,8 @@ class TestConfig:
     """Data class for storing test configuration"""
 
     test_name: str
-    upload_data_server_ip: str
-    upload_data_server_port: int
-    download_data_server_ip: str
-    download_data_server_port: int
+    data_server_ip: str
+    data_server_port: int
     chunk_size: int
     chunks: int
     data_server_listen_port: int
@@ -165,9 +163,6 @@ class TestSetup:
         self.freeradius = procs.FreeRADIUS(
             log_location=self.freeradius_log, debug=self.debug
         )
-        self.data_server = TCPServer(
-            self.config.data_server_listen_port, self.config.chunk_size
-        )
 
         self.username = self.wpasupplicant.get_username()
 
@@ -183,7 +178,6 @@ class TestSetup:
 
         start_proc(self.radius_tcpdump)
         start_proc(self.freeradius)
-        start_proc(self.data_server)
         start_proc(self.wpasupplicant)
 
         if wait_for_ip:
@@ -221,32 +215,24 @@ def generate_pcap(test_config: TestConfig, logger: logging.Logger, debug=False):
     begin = test.start()
     time.sleep(2)
 
+    # Create TCP server
+    data_server = TCPServer(
+        test_config.data_server_listen_port,
+        test_config.chunk_size,
+        test_config.chunks,
+        test_config.client_interface,
+    )
+
     # Start data transfer.
     logger.info(f"pulling {chunks} chunks")
     start_time = datetime.now()
     begin_data_transfer = time.perf_counter()
     if test_config.download_chunks:
-        ip = test_config.download_data_server_ip
-        port = test_config.download_data_server_port
-        for num in range(chunks):
-            logger.info(f"downloading chunk {num+1} of {chunks} from {ip}:{port}")
-            get_data_chunk(
-                server_host=test_config.download_data_server_ip,
-                server_port=test_config.download_data_server_port,
-                chunk_size=test_config.chunk_size,
-                iface=test_config.client_interface,
-            )
+        data_server.start(download=True)
+        data_server.transfer_data()
     if test_config.upload_chunks:
-        ip = test_config.upload_data_server_ip
-        port = test_config.upload_data_server_port
-        for num in range(chunks):
-            logger.info(f"uploading chunk {num+1} of {chunks} to {ip}:{port}")
-            get_data_chunk(
-                server_host=test_config.upload_data_server_ip,
-                server_port=test_config.upload_data_server_port,
-                chunk_size=test_config.chunk_size,
-                iface=test_config.client_interface,
-            )
+        data_server.start(download=False)
+        data_server.transfer_data()
 
     # Data transfer completed, stop test.
     end = time.perf_counter()

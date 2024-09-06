@@ -36,37 +36,19 @@ def text_input_test_name(value=None):
     return st.text_input("Test Name", help=help)
 
 
-def text_input_upload_data_server_ip(value=None):
-    """Data Server IP input field for upload"""
-    help = "This is the IP of the data server used for uploading chunks of data."
-    text = "Data Server IP for Upload"
-    if isinstance(value, str):
-        return st.text_input(text, value=value, help=help)
-    return st.text_input(text, help=help)
-
-
-def text_input_download_data_server_ip(value=None):
+def text_input_data_server_ip(value=None):
     """Data Server IP input field for download"""
-    help = "This is the IP of the data server used for downloading chunks of data."
-    text = "Data Server IP for Download"
+    help = "This is the IP of the data server used for downloading and uploading chunks of data."
+    text = "Data Server IP"
     if isinstance(value, str):
         return st.text_input(text, value=value, help=help)
     return st.text_input(text, help=help)
 
 
-def text_input_upload_data_server_port(value="") -> str:
-    """Data Server port input field for upload"""
-    help = "This is the port of the data server used for uploading chunks of data."
-    text = "Data Server Port for Upload"
-    if value:
-        return st.text_input(text, value=value, help=help)
-    return st.text_input(text, help=help)
-
-
-def text_input_download_data_server_port(value="") -> str:
+def text_input_data_server_port(value="") -> str:
     """Data Server port input field for download"""
-    help = "This is the port of the data server used for downloading chunks of data."
-    text = "Data Server Port for Download"
+    help = "This is the port of the data server used for downloading and uploading chunks of data."
+    text = "Data Server Port"
     if value:
         return st.text_input(text, value=value, help=help)
     return st.text_input(text, help=help)
@@ -195,10 +177,8 @@ uploaded_file = st.file_uploader("Upload config file", type=["yaml"])
 st.header("Test Configuration")
 
 # Add defaults
-upload_data_server_ip = defaults.UPLOAD_DATA_SERVER_IP
-upload_data_server_port = defaults.UPLOAD_DATA_SERVER_PORT
-download_data_server_ip = defaults.DOWNLOAD_DATA_SERVER_IP
-download_data_server_port = defaults.DOWNLOAD_DATA_SERVER_PORT
+data_server_ip = defaults.DATA_SERVER_IP
+data_server_port = defaults.DATA_SERVER_PORT
 
 # If user uploaded config file, then present those values from the config
 if uploaded_file is not None:
@@ -216,20 +196,9 @@ if uploaded_file is not None:
     checkbox_upload_chunks, checkbox_download_chunks = checkbox_select_upload_download(
         data["upload_chunks"], data["download_chunks"]
     )
-    if checkbox_upload_chunks:
-        upload_data_server_ip = text_input_upload_data_server_ip(
-            data["upload_data_server_ip"]
-        )
-        upload_data_server_port = text_input_upload_data_server_port(
-            data["upload_data_server_port"]
-        )
-    if checkbox_download_chunks:
-        download_data_server_ip = text_input_download_data_server_ip(
-            data["download_data_server_ip"]
-        )
-        download_data_server_port = text_input_download_data_server_port(
-            data["download_data_server_port"]
-        )
+    if checkbox_upload_chunks or checkbox_download_chunks:
+        data_server_ip = text_input_data_server_ip(data["data_server_ip"])
+        data_server_port = text_input_data_server_port(data["upload_data_server_port"])
     checkbox_generate_pcap, checkbox_execute_test_cases = checkbox_select_test_parts(
         data["generate_pcap"], data["generate_report"]
     )
@@ -250,12 +219,9 @@ else:
     sut_hardware = text_input_sut_hardware()
     sut_software = text_input_sut_software()
     checkbox_upload_chunks, checkbox_download_chunks = checkbox_select_upload_download()
-    if checkbox_upload_chunks:
-        upload_data_server_ip = text_input_upload_data_server_ip()
-        upload_data_server_port = text_input_upload_data_server_port()
-    if checkbox_download_chunks:
-        download_data_server_ip = text_input_download_data_server_ip()
-        download_data_server_port = text_input_download_data_server_port()
+    if checkbox_upload_chunks or checkbox_download_chunks:
+        data_server_ip = text_input_data_server_ip()
+        data_server_port = text_input_data_server_port()
     if not checkbox_upload_chunks and not checkbox_download_chunks:
         st.error("Please select at least one of the upload or download checkboxes.")
     # PCAP generation + report selection
@@ -275,10 +241,8 @@ if st.button("Run Tests"):
     # Create the test configuration
     config = TestConfig(
         test_name=test_name,
-        upload_data_server_ip=upload_data_server_ip,
-        upload_data_server_port=int(upload_data_server_port),
-        download_data_server_ip=download_data_server_ip,
-        download_data_server_port=int(download_data_server_port),
+        data_server_ip=data_server_ip,
+        data_server_port=int(data_server_port),
         chunk_size=chunk_size,
         chunks=chunks,
         data_server_listen_port=int(data_server_listen_port),
