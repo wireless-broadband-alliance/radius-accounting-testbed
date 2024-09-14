@@ -5,9 +5,9 @@ import raatestbed.test_setup as ts
 import logging
 import pytest
 import yaml
-import sys
 from raatestbed.metadata import get_metadata
 import raatestbed.defaults as defaults
+from typing import Union
 from raatestbed.files import init_dirs
 
 # TODO: dynamically generate tags/markers from pytest
@@ -18,28 +18,16 @@ def parse_cliargs():
     parser = argparse.ArgumentParser()
     parser.add_argument("test_name", type=str, help="Name of the test to run")
     parser.add_argument(
-        "--download_data_server_ip",
+        "data_server_ip",
         type=str,
         default=None,
         help="IP of the server to download data from",
     )
     parser.add_argument(
-        "--download_data_server_port",
+        "--data_server_port",
         type=int,
         default=None,
-        help="Port of the server to download data from",
-    )
-    parser.add_argument(
-        "--upload_data_server_ip",
-        type=str,
-        default=None,
-        help="IP of the server to upload data to",
-    )
-    parser.add_argument(
-        "--upload_data_server_port",
-        type=int,
-        default=None,
-        help="Port of the server to upload data to",
+        help=f"Port of the server to download data from (default: {defaults.DATA_SERVER_PORT})",
     )
     parser.add_argument(
         "--config", type=str, help="Optional config file to get input from"
@@ -147,25 +135,25 @@ def execute_test_cases(config: ts.TestConfig, logger: logging.Logger):
         pytest.main(pytest_args + extra_args)
 
 
-def get_input_value(cliarg, default_value, configarg):
+def get_input_value(default_value, cliarg=None, configarg=None):
     """Logic to decide which value to use based on the input."""
     # Priority: CLI > Config > Default
-    if cliarg:
+    if cliarg is not None:
         return cliarg
-    elif configarg:
+    elif configarg is not None:
         return configarg
     else:
         return default_value
 
 
-def change_marker_format(markers: str, delim=",") -> list:
+def change_marker_format(markers: str, delim=",") -> Union[list, None]:
     """Convert markers string to list."""
     if not markers:
-        return []
+        return None
     return markers.split(delim)
 
 
-def get_testconfig(cliargs, configargs, logger) -> ts.TestConfig:
+def get_testconfig(cliargs, configargs) -> ts.TestConfig:
     """Create TestConfig object with CLI + config args"""
 
     # Based on the input from CLI and config file, decide the values for TestConfig
@@ -174,13 +162,13 @@ def get_testconfig(cliargs, configargs, logger) -> ts.TestConfig:
 
     # Decide if we need to upload/download chunks based on the data server IP
     data_server_ip = get_input_value(
-        cliargs["data_server_ip"],
         defaults.DATA_SERVER_IP,
+        cliargs["data_server_ip"],
         configargs.get("data_server_ip"),
     )
     data_server_port = get_input_value(
-        cliargs["data_server_port"],
         defaults.DATA_SERVER_PORT,
+        cliargs["data_server_port"],
         configargs.get("data_server_port"),
     )
 
@@ -191,67 +179,67 @@ def get_testconfig(cliargs, configargs, logger) -> ts.TestConfig:
         data_server_port=data_server_port,
         chunk_size=int(
             get_input_value(
-                cliargs["chunk_size"], defaults.CHUNK_SIZE, configargs.get("chunk_size")
+                defaults.CHUNK_SIZE, cliargs["chunk_size"], configargs.get("chunk_size")
             )
         ),
         chunks=int(
             get_input_value(
-                cliargs["chunks"], defaults.CHUNKS, configargs.get("chunks")
+                defaults.CHUNKS, cliargs["chunks"], configargs.get("chunks")
             )
         ),
         sut_brand=get_input_value(
-            cliargs["sut_brand"], defaults.SUT, configargs.get("sut_brand")
+            defaults.SUT, cliargs["sut_brand"], configargs.get("sut_brand")
         ),
         sut_hardware=get_input_value(
-            cliargs["sut_hardware"], defaults.SUT, configargs.get("sut_hardware")
+            defaults.SUT, cliargs["sut_hardware"], configargs.get("sut_hardware")
         ),
         sut_software=get_input_value(
-            cliargs["sut_software"], defaults.SUT, configargs.get("sut_software")
+            defaults.SUT, cliargs["sut_software"], configargs.get("sut_software")
         ),
         data_server_listen_port=int(
             get_input_value(
-                cliargs["data_server_listen_port"],
                 defaults.DATA_SERVER_LISTEN_PORT,
+                cliargs["data_server_listen_port"],
                 configargs.get("data_server_listen_port"),
             )
         ),
         ssid=get_input_value(cliargs["ssid"], defaults.SSID, configargs.get("ssid")),
         generate_pcap=get_input_value(
-            not cliargs["no_pcap"],
             defaults.GENERATE_PCAP,
+            not cliargs["no_pcap"],
             configargs.get("generate_pcap"),
         ),
         generate_report=get_input_value(
-            not cliargs["no_test"],
             defaults.GENERATE_REPORT,
+            not cliargs["no_test"],
             configargs.get("generate_report"),
         ),
         upload_chunks=get_input_value(
-            not cliargs["no_upload"],
             defaults.UPLOAD_CHUNKS,
+            not cliargs["no_upload"],
             configargs.get("upload_chunks"),
         ),
         download_chunks=get_input_value(
-            not cliargs["no_download"],
             defaults.DOWNLOAD_CHUNKS,
+            not cliargs["no_download"],
             configargs.get("download_chunks"),
         ),
         markers=get_input_value(
-            cliargs["markers"], configargs.get("markers"), TEST_TAGS
+            TEST_TAGS, cliargs["markers"], configargs.get("markers")
         ),
         client_interface=get_input_value(
-            cliargs["client_interface"],
             defaults.WIRELESS_IFACE,
+            cliargs["client_interface"],
             configargs.get("client_interface"),
         ),
         server_interface=get_input_value(
-            cliargs["server_interface"],
             defaults.WIRED_IFACE,
+            cliargs["server_interface"],
             configargs.get("server_interface"),
         ),
         local_output_directory=get_input_value(
-            cliargs["local_output_directory"],
             defaults.ROOT_DIR,
+            cliargs["local_output_directory"],
             configargs.get("local_output_directory"),
         ),
     )
@@ -265,11 +253,6 @@ def main():
     logger = logging.getLogger(__name__)
     ts.setup_logging(cliargs_orig.debug)
 
-    # Check that either upload or download data server IP is provided.
-    if not cliargs["upload_data_server_ip"] and not cliargs["download_data_server_ip"]:
-        logger.error("Either upload or download data server IP must be provided.")
-        sys.exit(1)
-
     # Create TestConfig object
     if not cliargs["config"]:
         configargs = {}
@@ -277,7 +260,7 @@ def main():
         config_file = cliargs["config"]
         with open(config_file, "r") as file:
             configargs = yaml.safe_load(file)
-    config = get_testconfig(cliargs, configargs, logger)
+    config = get_testconfig(cliargs, configargs)
 
     # Create directories
     logger.info(f"Creating subdirectories in {config.local_output_directory}")

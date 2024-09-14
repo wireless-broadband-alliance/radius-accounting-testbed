@@ -58,6 +58,10 @@ class TestConfig:
     def __to_dict__(self):
         return self.__dict__
 
+    def pretty_print(self):
+        for key, value in self.__to_dict__().items():
+            print(f"{key}: {value}")
+
     def write_yaml(self):
         """Write test configuration to a YAML file"""
         config = files.get_config_filename(self.test_name, self.local_output_directory)
@@ -100,6 +104,7 @@ class TestSetup:
         self.root_dir = self.config.local_output_directory
         self.__create_dirs()
         self.__initialize_proc_vars()
+        logging.debug(f"Test configuration: {self.config.pretty_print()}")
 
     def __create_dirs(self):
         """Create subdirectories for logs, pcap, configs, and reports"""
@@ -217,6 +222,8 @@ def generate_pcap(test_config: TestConfig, logger: logging.Logger, debug=False):
 
     # Create TCP server
     data_server = TCPServer(
+        test_config.data_server_ip,
+        test_config.data_server_port,
         test_config.data_server_listen_port,
         test_config.chunk_size,
         test_config.chunks,
@@ -239,7 +246,7 @@ def generate_pcap(test_config: TestConfig, logger: logging.Logger, debug=False):
     end_time = datetime.now()
     session_duration = int(end - begin)
     data_transfer_duration = end - begin_data_transfer
-    logger.info(f"Download completed in {data_transfer_duration:.2f} seconds")
+    logger.info(f"Data transfer completed in {data_transfer_duration:.2f} seconds")
     test.stop()
 
     # Write test metadata to file.
@@ -255,6 +262,8 @@ def generate_pcap(test_config: TestConfig, logger: logging.Logger, debug=False):
         sut_hardware=test_config.sut_hardware,
         sut_software=test_config.sut_software,
         start_time=start_time,
+        uploaded=test_config.upload_chunks,
+        downloaded=test_config.download_chunks,
         end_time=end_time,
     )
     test_metadata_dict = test_metadata.get_dict()

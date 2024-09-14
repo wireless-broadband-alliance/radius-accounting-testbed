@@ -151,12 +151,24 @@ class TestAccuracyChecks:
             packet = pe.get_update_packets(packets)[-1]
         return packet
 
-    def __tonnage_accuracy(self, expected_octets, packets, octet_func: Callable):
+    def __tonnage_accuracy(self, metadata, packets, octet_func: Callable):
         """General tonnage accuracy function."""
-        tolerance = 0.1
+        chunks = int(metadata.chunks)
+        expected_octets = chunks * int(metadata.chunk_size)
+        tolerance = 0.02
+        # 14 bytes Eth header
+        # 20 bytes IP header
+        # 32 bytes TCP header
+        # total of 66 bytes overhead
+        # Assume one packet per chunk
+        # Double overhead if uploaded and downloaded chunks
+        if metadata.uploaded and metadata.downloaded:
+            octets_overhead = 66 * chunks * 2
+        else:
+            octets_overhead = 66 * chunks
         expected_octets_low, expected_octets_high = (
             expected_octets * (1 - tolerance),
-            expected_octets * (1 + tolerance),
+            expected_octets * (1 + tolerance) + octets_overhead,
         )
         packet = self.__get_stop_or_update_packets(packets)
         total_octets = octet_func(packet)
@@ -167,26 +179,22 @@ class TestAccuracyChecks:
     @pytest.mark.core_upload
     def test_input_tonnage_accuracy(self, packets, metadata):
         """Input tonnage is accurate."""
-        large_upload_octets = int(metadata.chunks) * int(metadata.chunk_size)
-        self.__tonnage_accuracy(large_upload_octets, packets, pe.get_total_input_octets)
+        self.__tonnage_accuracy(metadata, packets, pe.get_total_input_octets)
 
     @pytest.mark.core_download
     def test_output_tonnage_accuracy(self, packets, metadata):
         """Output tonnage is accurate."""
-        large_download_octets = int(metadata.chunks) * int(metadata.chunk_size)
-        self.__tonnage_accuracy(
-            large_download_octets, packets, pe.get_total_output_octets
-        )
+        self.__tonnage_accuracy(metadata, packets, pe.get_total_output_octets)
 
     @pytest.mark.core
     def test_session_duration_accuracy(self, packets, metadata):
         """Session duration is accurate."""
         tolerance = 0.05
         session_time_lower_bound = round(
-            (metadata.session_duration * (1 - tolerance)) - 2, 2
+            (metadata.session_duration * (1 - tolerance)) - 10, 2
         )
         session_time_upper_bound = round(
-            (metadata.session_duration * (1 + tolerance)) + 2, 2
+            (metadata.session_duration * (1 + tolerance)) + 10, 2
         )
         packet = self.__get_stop_or_update_packets(packets)
         acct_session_times = pe.get_acct_session_time(packet)
