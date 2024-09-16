@@ -60,6 +60,8 @@ class TestConfig:
 
     def pretty_print(self):
         for key, value in self.__to_dict__().items():
+            if isinstance(value, list):
+                value = ", ".join(value)
             print(f"{key}: {value}")
 
     def write_yaml(self):
@@ -75,15 +77,6 @@ def read_config_file(filename: str) -> TestConfig:
     with open(filename, "r") as file:
         config = yaml.safe_load(file)
     return TestConfig(**config)
-
-
-def setup_logging(debug):
-    if debug:
-        logging.basicConfig(
-            level=logging.DEBUG, format="%(asctime)s - %(levelname)s: %(message)s"
-        )
-    else:
-        logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
 
 def create_dir_if_not_exists(directory):
@@ -271,3 +264,4 @@ def generate_pcap(test_config: TestConfig, logger: logging.Logger, debug=False):
     logger.info(f'Writing metadata to file "{filename_withdir}"')
     with open(filename_withdir, "w") as f:
         json.dump(test_metadata_dict, f)
+    logger.info(f"Test {test_config.test_name} completed")

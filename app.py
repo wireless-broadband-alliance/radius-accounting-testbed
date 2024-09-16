@@ -198,7 +198,7 @@ if uploaded_file is not None:
     )
     if checkbox_upload_chunks or checkbox_download_chunks:
         data_server_ip = text_input_data_server_ip(data["data_server_ip"])
-        data_server_port = text_input_data_server_port(data["upload_data_server_port"])
+        data_server_port = text_input_data_server_port(data["data_server_port"])
     checkbox_generate_pcap, checkbox_execute_test_cases = checkbox_select_test_parts(
         data["generate_pcap"], data["generate_report"]
     )

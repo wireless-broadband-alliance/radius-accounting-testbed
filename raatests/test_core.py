@@ -155,8 +155,12 @@ class TestAccuracyChecks:
         """General tonnage accuracy function."""
         chunks = int(metadata.chunks)
         expected_octets = chunks * int(metadata.chunk_size)
+
+        # Allow for += 2% tolerance total octets
         tolerance = 0.02
-        # 14 bytes Eth header
+
+        # Calculate approx overhead from each packet
+        # 14 bytes Eth header (no VLAN)
         # 20 bytes IP header
         # 32 bytes TCP header
         # total of 66 bytes overhead
@@ -166,9 +170,13 @@ class TestAccuracyChecks:
             octets_overhead = 66 * chunks * 2
         else:
             octets_overhead = 66 * chunks
+
+        # Also add extra bytes for handshake and other traffic before data transfer
+        octets_extra = 100 * 1024 * 2
+
         expected_octets_low, expected_octets_high = (
             expected_octets * (1 - tolerance),
-            expected_octets * (1 + tolerance) + octets_overhead,
+            (expected_octets * (1 + tolerance)) + octets_overhead + octets_extra,
         )
         packet = self.__get_stop_or_update_packets(packets)
         total_octets = octet_func(packet)

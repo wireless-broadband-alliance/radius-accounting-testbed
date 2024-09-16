@@ -49,9 +49,9 @@ class TCPServer:
                 server.bind(("0.0.0.0", self.listen_port))
             except OSError as e:
                 logging.debug(
-                    f"Not ready to bind: {e}, sleeping for 5 seconds and retrying"
+                    f"Not ready to bind: {e}, sleeping for 30 seconds and retrying"
                 )
-                time.sleep(5)
+                time.sleep(30)
                 server.bind(("0.0.0.0", self.listen_port))
 
             server.listen()
@@ -130,6 +130,7 @@ class TCPServer:
     def __upload_data_chunks(self):
         """Client that connects to this server and sends data to it."""
         client = self.__connect_socket_with_interface()
+        client.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         file_path = "/dev/random"
         with open(file_path, "rb") as file:
             data = file.read(self.chunk_size)
