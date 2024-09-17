@@ -233,19 +233,20 @@ python3 appcli.py --help
 There are several options available to the user. The following is the help output:
 
 ```bash
-usage: appcli.py [-h] [--config CONFIG] [--markers MARKERS] [--interface INTERFACE] [--debug]
-                 [--data_server_listen_port DATA_SERVER_LISTEN_PORT] [--local_output_directory LOCAL_OUTPUT_DIRECTORY]
-                 [--chunk_size CHUNK_SIZE] [--chunks CHUNKS] [--ssid SSID] [--sut_software SUT_software] [--sut_brand SUT_BRAND]
-                 [--sut_hardware SUT_hardware] [--client_interface CLIENT_INTERFACE] [--server_interface SERVER_INTERFACE] [--no_pcap] [--no_test]
-                 test_name data_server_ip data_server_port
+usage: appcli.py [-h] [--data_server_port DATA_SERVER_PORT] [--config CONFIG] [--markers MARKERS] [--interface INTERFACE] [--debug]
+                 [--data_server_listen_port DATA_SERVER_LISTEN_PORT] [--local_output_directory LOCAL_OUTPUT_DIRECTORY] [--chunk_size CHUNK_SIZE] [--chunks CHUNKS]
+                 [--ssid SSID] [--sut_software SUT_SOFTWARE] [--sut_brand SUT_BRAND] [--sut_hardware SUT_HARDWARE] [--client_interface CLIENT_INTERFACE]
+                 [--server_interface SERVER_INTERFACE] [--no_pcap] [--no_test] [--no_upload] [--no_download]
+                 test_name data_server_ip
 
 positional arguments:
   test_name             Name of the test to run
-  data_server_ip        IP of the server to get data from
-  data_server_port      Port of the server to get data from
+  data_server_ip        IP of the server to download data from
 
 options:
   -h, --help            show this help message and exit
+  --data_server_port DATA_SERVER_PORT
+                        Port of the server to download data from (default: 8000)
   --config CONFIG       Optional config file to get input from
   --markers MARKERS     Test Markers: core, core-upload, core-download, openroaming (default)
   --interface INTERFACE
@@ -256,18 +257,21 @@ options:
   --local_output_directory LOCAL_OUTPUT_DIRECTORY
                         default: /usr/local/raa
   --chunk_size CHUNK_SIZE
-                        default: 1048576
+                        default: 1024
   --chunks CHUNKS       Number of chunks to pull, default: 10
   --ssid SSID           default: raatest
-  --sut_software SUT_software
-                        SUT software
-  --sut_brand SUT_BRAND   SUT brand
-  --sut_hardware SUT_hardware
-                        SUT hardware
+  --sut_software SUT_SOFTWARE
+                        Software info for System Under Test (SUT)
+  --sut_brand SUT_BRAND
+                        Brand of System Under Test (SUT)
+  --sut_hardware SUT_HARDWARE
+                        Hardware info for System Under Test (SUT)
   --client_interface CLIENT_INTERFACE
                         default: wlan0
   --server_interface SERVER_INTERFACE
                         default: eth0
   --no_pcap             Skip PCAP generation
   --no_test             Skip test case execution
+  --no_upload           Do not upload chunks
+  --no_download         Do not download chunks
 ```
