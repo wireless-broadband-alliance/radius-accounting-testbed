@@ -79,6 +79,15 @@ def read_config_file(filename: str) -> TestConfig:
     return TestConfig(**config)
 
 
+def setup_logging(debug):
+    if debug:
+        logging.basicConfig(
+            level=logging.DEBUG, format="%(asctime)s - %(levelname)s: %(message)s"
+        )
+    else:
+        logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
+
+
 def create_dir_if_not_exists(directory):
     if not os.path.exists(directory):
         logging.info(f"Creating directory {directory}")

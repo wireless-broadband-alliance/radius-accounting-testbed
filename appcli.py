@@ -148,9 +148,12 @@ def get_input_value(default_value, cliarg=None, configarg=None):
 
 def change_marker_format(markers: str, delim=",") -> Union[list, None]:
     """Convert markers string to list."""
-    if not markers:
-        return None
-    return markers.split(delim)
+    possible_delims = [",", ";", " "]
+    for delim in possible_delims:
+        if delim in markers:
+            break
+    new_markers = markers.split(delim)
+    return [marker.strip() for marker in new_markers]
 
 
 def get_testconfig(cliargs, configargs) -> ts.TestConfig:
