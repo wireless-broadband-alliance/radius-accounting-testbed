@@ -5,16 +5,23 @@ import raatestbed.test_setup as ts
 import logging
 import pytest
 import yaml
+import os
 from raatestbed.metadata import get_metadata
 import raatestbed.defaults as defaults
 from typing import Union
-from raatestbed.files import init_dirs
+import raatestbed.files as files
 
-# TODO: dynamically generate tags/markers from pytest
-TEST_TAGS = ["core", "core_upload", "core_download", "openroaming"]
+
+def get_possible_markers():
+    """Generate markers from pytest.ini file."""
+    curdir = os.path.dirname(os.path.abspath(__file__))
+    pytest_ini_file = os.path.join(curdir, defaults.RELATIVE_PYTEST_INI)
+    return files.get_marker_list(pytest_ini_file)
 
 
 def parse_cliargs():
+    markers = get_possible_markers()
+    markers_str = ", ".join(markers)
     parser = argparse.ArgumentParser()
     parser.add_argument("test_name", type=str, help="Name of the test to run")
     parser.add_argument(
@@ -36,7 +43,7 @@ def parse_cliargs():
         "--markers",
         type=str,
         default=None,
-        help="Test Markers: core, core-upload, core-download, openroaming (default)",
+        help=f"Test Markers: {markers_str}",
     )
     parser.add_argument(
         "--interface",
@@ -131,6 +138,7 @@ def execute_test_cases(config: ts.TestConfig, logger: logging.Logger):
     markers_log = " ".join(config.markers)
     pytest_args = ["-v", "raatests", "--test_name", test_name]
     extra_args = ["-m", markers]
+    logger.debug(f"\n\npytest args: {pytest_args + extra_args}\n")
     if user_wants_to_continue(f'Run test suites "{markers_log}"'):
         pytest.main(pytest_args + extra_args)
 
@@ -159,8 +167,9 @@ def change_marker_format(markers: str, delim=",") -> Union[list, None]:
 def get_testconfig(cliargs, configargs) -> ts.TestConfig:
     """Create TestConfig object with CLI + config args"""
 
-    # Based on the input from CLI and config file, decide the values for TestConfig
+    possible_markers = get_possible_markers()
 
+    # Based on the input from CLI and config file, decide the values for TestConfig
     cliargs["markers"] = change_marker_format(cliargs["markers"])
 
     # Decide if we need to upload/download chunks based on the data server IP
@@ -228,7 +237,7 @@ def get_testconfig(cliargs, configargs) -> ts.TestConfig:
             configargs.get("download_chunks"),
         ),
         markers=get_input_value(
-            TEST_TAGS, cliargs["markers"], configargs.get("markers")
+            possible_markers, cliargs["markers"], configargs.get("markers")
         ),
         client_interface=get_input_value(
             defaults.WIRELESS_IFACE,
@@ -267,7 +276,7 @@ def main():
 
     # Create directories
     logger.info(f"Creating subdirectories in {config.local_output_directory}")
-    init_dirs(config.local_output_directory)
+    files.init_dirs(config.local_output_directory)
     config.write_yaml()
 
     # Generate PCAP if enabled.

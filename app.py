@@ -6,13 +6,12 @@ import raatestbed.test_setup as ts
 import pytest
 import time
 import yaml
+import os
 from typing import List
 from streamlit.logger import get_logger
 from raatestbed.test_setup import TestConfig
+import raatestbed.files as files
 import raatestbed.defaults as defaults
-
-# TODO: dynamically generate tags/markers from pytest
-TEST_TAGS = ["core", "core_upload", "core_download", "openroaming"]
 
 
 def get_selected_markers(possible_markers, checked_markers=[]) -> List[str]:
@@ -26,6 +25,13 @@ def get_selected_markers(possible_markers, checked_markers=[]) -> List[str]:
         else:
             results[marker] = st.checkbox(marker)
     return [marker for marker, selected in results.items() if selected]
+
+
+def get_possible_markers():
+    """Generate markers from pytest.ini file."""
+    curdir = os.path.dirname(os.path.abspath(__file__))
+    pytest_ini_file = os.path.join(curdir, defaults.RELATIVE_PYTEST_INI)
+    return files.get_marker_list(pytest_ini_file)
 
 
 def text_input_test_name(value=None):
@@ -180,6 +186,8 @@ st.header("Test Configuration")
 data_server_ip = defaults.DATA_SERVER_IP
 data_server_port = defaults.DATA_SERVER_PORT
 
+possible_markers = get_possible_markers()
+
 # If user uploaded config file, then present those values from the config
 if uploaded_file is not None:
     data = yaml.safe_load(uploaded_file)
@@ -202,7 +210,7 @@ if uploaded_file is not None:
     checkbox_generate_pcap, checkbox_execute_test_cases = checkbox_select_test_parts(
         data["generate_pcap"], data["generate_report"]
     )
-    markers = get_selected_markers(TEST_TAGS, data["markers"])
+    markers = get_selected_markers(possible_markers, data["markers"])
     client_interface = text_input_client_interface(data["client_interface"])
     server_interface = text_input_server_interface(data["server_interface"])
     local_output_directory = text_input_local_output_directory(
@@ -227,7 +235,7 @@ else:
     # PCAP generation + report selection
     checkbox_generate_pcap, checkbox_execute_test_cases = checkbox_select_test_parts()
     # Marker Selection
-    markers = get_selected_markers(TEST_TAGS)
+    markers = get_selected_markers(possible_markers)
 
     # Advanced Settings
     st.subheader("Advanced Settings")

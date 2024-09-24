@@ -296,10 +296,10 @@ def pytest_configure(config):
     """Do preliminary checks to ensure there are PCAP and metadata files before test execution. Also load plugins."""
     test_name = config.getoption(ARGNAME_TEST_NAME)
     root_dir = config.getoption(ARGNAME_ROOT_DIR)
-    config.addinivalue_line("markers", "core: basic tests")
-    config.addinivalue_line("markers", "core_upload: basic tests for upload")
-    config.addinivalue_line("markers", "core_download: basic tests for download")
-    config.addinivalue_line("markers", "openroaming: openroaming tests")
+    # config.addinivalue_line("markers", "core: basic tests")
+    # config.addinivalue_line("markers", "core_upload: basic tests for upload")
+    # config.addinivalue_line("markers", "core_download: basic tests for download")
+    # config.addinivalue_line("markers", "openroaming: openroaming tests")
     pcap_file = files.get_pcap_filename(test_name, root_dir)
     metadata_file = files.get_metadata_filename(test_name, root_dir)
     # Check both files exist
