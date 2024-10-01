@@ -94,11 +94,14 @@ python appcli.py test <data_server_ip> <data_server_port>
 Where `data_server_ip` and `data_server_port` are the IP and port to forward traffic through the AP network (System Under Test) to the data server on the Pi.
 
 ## System Under Test (SUT)
+
 ### Introduction
+
 The Test Bed will run a series of tests against the System Under Test (SUT).
 The SUT needs to be an Access Point and a backend network.
 
 ### Requirements
+
 The SUT must do the following:
 
 1. Support an 802.1X wireless network. The SSID can be "raatest" but is configurable.
@@ -110,6 +113,7 @@ for wired side may be supported in a future release.
 The data server IP and port are configurable.
 
 ### Test Bed Physical Setup
+
 1. Connect ethernet port on test bed (Raspberry Pi) to a wired port on SUT network and wait for IP.
 2. On SUT, broadcast "raatest" or other SSID that belongs to the SUT's 802.1X wireless network.
 3. SSH into and start the test bed, see [how to start script](#starting-the-test-bed).
@@ -131,11 +135,15 @@ flowchart LR
     eth-->rs
     wlan-.-wireless{{wireless}}-.->ap
 ```
+
 Note: Wireless connection will be made during test execution.
 
 ## Test Bed Architecture
+
 ### Basic Operation
+
 The Test Bed does the following:
+
 1. Connect to a wireless access point over 802.1X by SSID matching. The access point is part of the System Under Test (SUT).
 2. Act as a RADIUS server. The RADIUS client is the SUT and points to the Test Bed.
 3. Download or upload data.
@@ -143,6 +151,7 @@ The Test Bed does the following:
 5. Generate a test bundle containing test report and data files.
 
 ### Diagram
+
 The following diagram shows the operation of the Test Bed.
 
 ```mermaid
@@ -224,19 +233,20 @@ python3 appcli.py --help
 There are several options available to the user. The following is the help output:
 
 ```bash
-usage: appcli.py [-h] [--config CONFIG] [--markers MARKERS] [--interface INTERFACE] [--debug]
-                 [--data_server_listen_port DATA_SERVER_LISTEN_PORT] [--local_output_directory LOCAL_OUTPUT_DIRECTORY]
-                 [--chunk_size CHUNK_SIZE] [--chunks CHUNKS] [--ssid SSID] [--sut_firmware SUT_FIRMWARE] [--sut_make SUT_MAKE]
-                 [--sut_model SUT_MODEL] [--client_interface CLIENT_INTERFACE] [--server_interface SERVER_INTERFACE] [--no_pcap] [--no_test]
-                 test_name data_server_ip data_server_port
+usage: appcli.py [-h] [--data_server_port DATA_SERVER_PORT] [--config CONFIG] [--markers MARKERS] [--interface INTERFACE] [--debug]
+                 [--data_server_listen_port DATA_SERVER_LISTEN_PORT] [--local_output_directory LOCAL_OUTPUT_DIRECTORY] [--chunk_size CHUNK_SIZE] [--chunks CHUNKS]
+                 [--ssid SSID] [--sut_software SUT_SOFTWARE] [--sut_brand SUT_BRAND] [--sut_hardware SUT_HARDWARE] [--client_interface CLIENT_INTERFACE]
+                 [--server_interface SERVER_INTERFACE] [--no_pcap] [--no_test] [--no_upload] [--no_download]
+                 test_name data_server_ip
 
 positional arguments:
   test_name             Name of the test to run
-  data_server_ip        IP of the server to get data from
-  data_server_port      Port of the server to get data from
+  data_server_ip        IP of the server to download data from
 
 options:
   -h, --help            show this help message and exit
+  --data_server_port DATA_SERVER_PORT
+                        Port of the server to download data from (default: 8000)
   --config CONFIG       Optional config file to get input from
   --markers MARKERS     Test Markers: core, core-upload, core-download, openroaming (default)
   --interface INTERFACE
@@ -247,18 +257,21 @@ options:
   --local_output_directory LOCAL_OUTPUT_DIRECTORY
                         default: /usr/local/raa
   --chunk_size CHUNK_SIZE
-                        default: 1048576
+                        default: 1024
   --chunks CHUNKS       Number of chunks to pull, default: 10
   --ssid SSID           default: raatest
-  --sut_firmware SUT_FIRMWARE
-                        SUT firmware
-  --sut_make SUT_MAKE   SUT make
-  --sut_model SUT_MODEL
-                        SUT model
+  --sut_software SUT_SOFTWARE
+                        Software info for System Under Test (SUT)
+  --sut_brand SUT_BRAND
+                        Brand of System Under Test (SUT)
+  --sut_hardware SUT_HARDWARE
+                        Hardware info for System Under Test (SUT)
   --client_interface CLIENT_INTERFACE
                         default: wlan0
   --server_interface SERVER_INTERFACE
                         default: eth0
   --no_pcap             Skip PCAP generation
   --no_test             Skip test case execution
+  --no_upload           Do not upload chunks
+  --no_download         Do not download chunks
 ```

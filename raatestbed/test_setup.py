@@ -12,7 +12,7 @@ from dataclasses import dataclass
 
 import raatestbed.processes as procs
 import raatestbed.files as files
-from raatestbed.data_transfer import TCPServer, get_data_chunk
+from raatestbed.data_transfer import TCPServer
 from raatestbed.metadata import Metadata
 
 
@@ -29,13 +29,15 @@ class TestConfig:
     ssid: str
     generate_pcap: bool
     generate_report: bool
+    upload_chunks: bool
+    download_chunks: bool
     markers: List[str]
     client_interface: str
     server_interface: str
     local_output_directory: str
-    sut_make: str
-    sut_model: str
-    sut_firmware: str
+    sut_brand: str
+    sut_hardware: str
+    sut_software: str
 
     @property
     def pcap_dir(self):
@@ -55,6 +57,12 @@ class TestConfig:
 
     def __to_dict__(self):
         return self.__dict__
+
+    def pretty_print(self):
+        for key, value in self.__to_dict__().items():
+            if isinstance(value, list):
+                value = ", ".join(value)
+            print(f"{key}: {value}")
 
     def write_yaml(self):
         """Write test configuration to a YAML file"""
@@ -98,6 +106,7 @@ class TestSetup:
         self.root_dir = self.config.local_output_directory
         self.__create_dirs()
         self.__initialize_proc_vars()
+        logging.debug(f"Test configuration: {self.config.pretty_print()}")
 
     def __create_dirs(self):
         """Create subdirectories for logs, pcap, configs, and reports"""
@@ -161,9 +170,6 @@ class TestSetup:
         self.freeradius = procs.FreeRADIUS(
             log_location=self.freeradius_log, debug=self.debug
         )
-        self.data_server = TCPServer(
-            self.config.data_server_listen_port, self.config.chunk_size
-        )
 
         self.username = self.wpasupplicant.get_username()
 
@@ -179,7 +185,6 @@ class TestSetup:
 
         start_proc(self.radius_tcpdump)
         start_proc(self.freeradius)
-        start_proc(self.data_server)
         start_proc(self.wpasupplicant)
 
         if wait_for_ip:
@@ -217,25 +222,33 @@ def generate_pcap(test_config: TestConfig, logger: logging.Logger, debug=False):
     begin = test.start()
     time.sleep(2)
 
+    # Create TCP server
+    data_server = TCPServer(
+        test_config.data_server_ip,
+        test_config.data_server_port,
+        test_config.data_server_listen_port,
+        test_config.chunk_size,
+        test_config.chunks,
+        test_config.client_interface,
+    )
+
     # Start data transfer.
     logger.info(f"pulling {chunks} chunks")
     start_time = datetime.now()
     begin_data_transfer = time.perf_counter()
-    for num in range(chunks):
-        logger.info(f"pulling chunk {num+1} of {chunks}")
-        get_data_chunk(
-            server_host=test_config.data_server_ip,
-            server_port=test_config.data_server_port,
-            chunk_size=test_config.chunk_size,
-            iface=test_config.client_interface,
-        )
+    if test_config.download_chunks:
+        data_server.start(download=True)
+        data_server.transfer_data()
+    if test_config.upload_chunks:
+        data_server.start(download=False)
+        data_server.transfer_data()
 
     # Data transfer completed, stop test.
     end = time.perf_counter()
     end_time = datetime.now()
     session_duration = int(end - begin)
     data_transfer_duration = end - begin_data_transfer
-    logger.info(f"Download completed in {data_transfer_duration:.2f} seconds")
+    logger.info(f"Data transfer completed in {data_transfer_duration:.2f} seconds")
     test.stop()
 
     # Write test metadata to file.
@@ -247,10 +260,12 @@ def generate_pcap(test_config: TestConfig, logger: logging.Logger, debug=False):
         session_duration=session_duration,
         chunk_size=str(test_config.chunk_size),
         chunks=str(chunks),
-        sut_make=test_config.sut_make,
-        sut_model=test_config.sut_model,
-        sut_firmware=test_config.sut_firmware,
+        sut_brand=test_config.sut_brand,
+        sut_hardware=test_config.sut_hardware,
+        sut_software=test_config.sut_software,
         start_time=start_time,
+        uploaded=test_config.upload_chunks,
+        downloaded=test_config.download_chunks,
         end_time=end_time,
     )
     test_metadata_dict = test_metadata.get_dict()
@@ -258,3 +273,4 @@ def generate_pcap(test_config: TestConfig, logger: logging.Logger, debug=False):
     logger.info(f'Writing metadata to file "{filename_withdir}"')
     with open(filename_withdir, "w") as f:
         json.dump(test_metadata_dict, f)
+    logger.info(f"Test {test_config.test_name} completed")

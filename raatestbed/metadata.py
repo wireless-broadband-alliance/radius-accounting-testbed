@@ -14,11 +14,13 @@ class Metadata:
     session_duration: int
     chunk_size: str
     chunks: str
-    sut_make: str
-    sut_model: str
-    sut_firmware: str
+    sut_brand: str
+    sut_hardware: str
+    sut_software: str
     start_time: datetime
     end_time: datetime
+    uploaded: bool
+    downloaded: bool
     _date_format: str = "%Y-%m-%d %H:%M:%S"
 
     def __post_init__(self):
@@ -34,9 +36,11 @@ class Metadata:
             "session_duration": self.session_duration,
             "chunk_size": self.chunk_size,
             "chunks": self.chunks,
-            "sut_make": self.sut_make,
-            "sut_model": self.sut_model,
-            "sut_firmware": self.sut_firmware,
+            "sut_brand": self.sut_brand,
+            "sut_hardware": self.sut_hardware,
+            "sut_software": self.sut_software,
+            "uploaded": self.uploaded,
+            "downloaded": self.downloaded,
             "start_time": self.start_time.strftime(self._date_format),
             "end_time": self.end_time.strftime(self._date_format),
         }

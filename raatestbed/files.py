@@ -1,12 +1,22 @@
 """Contains filenames and directories used in the project."""
 
 import os
+import configparser
 
 
 def init_dirs(root_dir: str):
     """Initialize all directory."""
     os.makedirs(root_dir, exist_ok=True)
     init_subdirectories(root_dir)
+
+
+def get_marker_list(ini_file="pytest.ini") -> list:
+    """Return list of markers from pytest ini file."""
+    config = configparser.ConfigParser()
+    config.read(ini_file)
+    test_markers = config["pytest"]["markers"].split("\n")[1:]
+    test_markers = [marker.split(":")[0] for marker in test_markers]
+    return test_markers
 
 
 def init_subdirectories(root_dir: str):
