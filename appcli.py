@@ -139,8 +139,9 @@ def execute_test_cases(config: ts.TestConfig, logger: logging.Logger):
     pytest_args = ["-v", "raatests", "--test_name", test_name]
     extra_args = ["-m", markers]
     logger.debug(f"\n\npytest args: {pytest_args + extra_args}\n")
-    if user_wants_to_continue(f'Run test suites "{markers_log}"'):
-        pytest.main(pytest_args + extra_args)
+    pytest.main(pytest_args + extra_args)
+    # if user_wants_to_continue(f'Run test suites "{markers_log}"'):
+    #    pytest.main(pytest_args + extra_args)
 
 
 def get_input_value(default_value, cliarg=None, configarg=None):
@@ -215,7 +216,7 @@ def get_testconfig(cliargs, configargs) -> ts.TestConfig:
                 configargs.get("data_server_listen_port"),
             )
         ),
-        ssid=get_input_value(cliargs["ssid"], defaults.SSID, configargs.get("ssid")),
+        ssid=get_input_value(defaults.SSID, cliargs["ssid"], configargs.get("ssid")),
         generate_pcap=get_input_value(
             defaults.GENERATE_PCAP,
             not cliargs["no_pcap"],
