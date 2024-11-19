@@ -129,16 +129,24 @@ class TestAttributeChecks:
             assert total_usage >= prev_total_usage
 
     @pytest.mark.core_upload
-    def test_in_gigaword_rolls_over(self, packets):
+    def test_in_gigaword_rolls_over(self, packets, metadata):
         """Acct-Input-Gigaword rolls over."""
         # Verify gigaword rollover by checking that the total usage is increasing.
-        self.__verify_usage_increasing(packets, pe.get_total_output_octets)
+        total_octets = int(metadata.chunk_size) * int(metadata.chunks)
+        if total_octets > 4 * 1024 * 1024 * 1024:
+            self.__verify_usage_increasing(packets, pe.get_total_output_octets)
+        else:
+            pytest.skip("Upload octets under 4 GB, Acct-Input-Gigaword not used.")
 
     @pytest.mark.core_download
-    def test_out_gigaword_rolls_over(self, packets):
+    def test_out_gigaword_rolls_over(self, packets, metadata):
         """Acct-Output-Gigaword rolls over."""
         # Verify gigaword rollover by checking that the total usage is increasing.
-        self.__verify_usage_increasing(packets, pe.get_total_input_octets)
+        total_octets = int(metadata.chunk_size) * int(metadata.chunks)
+        if total_octets > 4 * 1024 * 1024 * 1024:
+            self.__verify_usage_increasing(packets, pe.get_total_input_octets)
+        else:
+            pytest.skip("Download octets under 4 GB, Acct-Input-Gigaword not used.")
 
 
 class TestAccuracyChecks:
