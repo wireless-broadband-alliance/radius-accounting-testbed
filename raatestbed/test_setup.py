@@ -238,10 +238,14 @@ def generate_pcap(test_config: TestConfig, logger: logging.Logger, debug=False):
     begin_data_transfer = time.perf_counter()
     if test_config.download_chunks:
         data_server.start(download=True)
-        data_server.transfer_data()
+        usage_download = data_server.transfer_data()
+    else:
+        usage_download = None
     if test_config.upload_chunks:
         data_server.start(download=False)
-        data_server.transfer_data()
+        usage_upload = data_server.transfer_data()
+    else:
+        usage_upload = None
 
     # Data transfer completed, stop test.
     end = time.perf_counter()
@@ -265,7 +269,9 @@ def generate_pcap(test_config: TestConfig, logger: logging.Logger, debug=False):
         sut_software=test_config.sut_software,
         start_time=start_time,
         uploaded=test_config.upload_chunks,
+        usage_upload=usage_upload,
         downloaded=test_config.download_chunks,
+        usage_download=usage_download,
         end_time=end_time,
     )
     test_metadata_dict = test_metadata.get_dict()

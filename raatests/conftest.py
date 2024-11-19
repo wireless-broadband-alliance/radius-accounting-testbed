@@ -195,6 +195,8 @@ class CustomPDFReportPlugin:
         cell_template(f"End Time: {end_time}")
         cell_template(f"Chunks: {d.chunks}")
         cell_template(f"Chunk Size: {d.chunk_size}")
+        cell_template(f"Uploaded: {d.uploaded}")
+        cell_template(f"Downloaded: {d.downloaded}")
         cell_template(f"Session Duration (s): {d.session_duration}")
         cell_template(f"Username: {d.username}")
         pdf.ln(10)

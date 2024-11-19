@@ -1,6 +1,6 @@
 import raatestbed.pcap_extract as pe
 from scapy.all import Radius
-from typing import List, Callable
+from typing import List, Callable, Tuple
 import logging
 import pytest
 
@@ -129,16 +129,24 @@ class TestAttributeChecks:
             assert total_usage >= prev_total_usage
 
     @pytest.mark.core_upload
-    def test_in_gigaword_rolls_over(self, packets):
+    def test_in_gigaword_rolls_over(self, packets, metadata):
         """Acct-Input-Gigaword rolls over."""
         # Verify gigaword rollover by checking that the total usage is increasing.
-        self.__verify_usage_increasing(packets, pe.get_total_output_octets)
+        total_octets = int(metadata.chunk_size) * int(metadata.chunks)
+        if total_octets > 4 * 1024 * 1024 * 1024:
+            self.__verify_usage_increasing(packets, pe.get_total_output_octets)
+        else:
+            pytest.skip("Upload octets under 4 GB, Acct-Input-Gigaword not used.")
 
     @pytest.mark.core_download
-    def test_out_gigaword_rolls_over(self, packets):
+    def test_out_gigaword_rolls_over(self, packets, metadata):
         """Acct-Output-Gigaword rolls over."""
         # Verify gigaword rollover by checking that the total usage is increasing.
-        self.__verify_usage_increasing(packets, pe.get_total_input_octets)
+        total_octets = int(metadata.chunk_size) * int(metadata.chunks)
+        if total_octets > 4 * 1024 * 1024 * 1024:
+            self.__verify_usage_increasing(packets, pe.get_total_input_octets)
+        else:
+            pytest.skip("Download octets under 4 GB, Acct-Input-Gigaword not used.")
 
 
 class TestAccuracyChecks:
@@ -151,8 +159,34 @@ class TestAccuracyChecks:
             packet = pe.get_update_packets(packets)[-1]
         return packet
 
-    def __tonnage_accuracy(self, metadata, packets, octet_func: Callable):
+    def __get_packets_sent_recv(self, metadata) -> Tuple[int, int]:
+        """Return packets sent and received from given metadata."""
+        if metadata.uploaded and metadata.downloaded:
+            packets_sent = (
+                metadata.usage_upload.packets_sent
+                + metadata.usage_download.packets_sent
+            )
+            packets_recv = (
+                metadata.usage_download.packets_recv
+                + metadata.usage_upload.packets_recv
+            )
+        elif metadata.uploaded and not metadata.downloaded:
+            packets_sent = metadata.usage_upload.packets_sent
+            packets_recv = metadata.usage_upload.packets_recv
+        elif not metadata.uploaded and metadata.downloaded:
+            packets_recv = metadata.usage_download.packets_recv
+            packets_sent = metadata.usage_download.packets_sent
+        else:
+            packets_sent = 0
+            packets_recv = 0
+        assert packets_sent or packets_recv, "No packets sent or received"
+        return int(packets_sent), int(packets_recv)
+
+    def __tonnage_accuracy(
+        self, metadata, packets, octet_func: Callable, packet_count: int
+    ):
         """General tonnage accuracy function."""
+
         chunks = int(metadata.chunks)
         expected_octets = chunks * int(metadata.chunk_size)
 
@@ -164,14 +198,9 @@ class TestAccuracyChecks:
         # 20 bytes IP header
         # 32 bytes TCP header
         # total of 66 bytes overhead
-        # Assume one packet per chunk
-        # Double overhead if uploaded and downloaded chunks
-        if metadata.uploaded and metadata.downloaded:
-            octets_overhead = 66 * chunks * 2
-        else:
-            octets_overhead = 66 * chunks
 
         # Also add extra bytes for handshake and other traffic before data transfer
+        octets_overhead = 66 * packet_count
         octets_extra = 100 * 1024 * 2
 
         expected_octets_low, expected_octets_high = (
@@ -187,12 +216,22 @@ class TestAccuracyChecks:
     @pytest.mark.core_upload
     def test_input_tonnage_accuracy(self, packets, metadata):
         """Input tonnage is accurate."""
-        self.__tonnage_accuracy(metadata, packets, pe.get_total_input_octets)
+        if not metadata.uploaded:
+            pytest.skip("No upload data")
+        packets_sent, _ = self.__get_packets_sent_recv(metadata)
+        self.__tonnage_accuracy(
+            metadata, packets, pe.get_total_input_octets, packets_sent
+        )
 
     @pytest.mark.core_download
     def test_output_tonnage_accuracy(self, packets, metadata):
         """Output tonnage is accurate."""
-        self.__tonnage_accuracy(metadata, packets, pe.get_total_output_octets)
+        if not metadata.downloaded:
+            pytest.skip("No download data")
+        _, packets_recv = self.__get_packets_sent_recv(metadata)
+        self.__tonnage_accuracy(
+            metadata, packets, pe.get_total_output_octets, packets_recv
+        )
 
     @pytest.mark.core
     def test_session_duration_accuracy(self, packets, metadata):
