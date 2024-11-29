@@ -143,14 +143,13 @@ class TCPServer:
         """Client that connects to this server and receives data from it."""
         client = self.__connect_socket_with_interface()
         with client:
-            for _ in range(self.chunks):
+            while True:
                 try:
                     client.recv(self.chunk_size)
                 except BrokenPipeError:
                     break
                 except ConnectionResetError:
                     break
-                time.sleep(0.001)
 
     def __upload_data_chunks(self):
         """Client that connects to this server and sends data to it."""
@@ -160,14 +159,13 @@ class TCPServer:
         with open(file_path, "rb") as file:
             data = file.read(self.chunk_size)
         with client:
-            for _ in range(self.chunks):
+            while True:
                 try:
                     client.sendall(data)
                 except BrokenPipeError:
                     break
                 except ConnectionResetError:
                     break
-                time.sleep(0.001)
 
     def transfer_data(self) -> UsageCounter:
         """Decide whether to download or upload data chunks based on self.download flag."""
