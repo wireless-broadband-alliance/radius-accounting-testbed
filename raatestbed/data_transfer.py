@@ -74,9 +74,9 @@ class TCPServer:
                 server.bind(("0.0.0.0", self.listen_port))
             except OSError as e:
                 logging.debug(
-                    f"Not ready to bind: {e}, sleeping for 30 seconds and retrying"
+                    f"Not ready to bind: {e}, sleeping for 120 seconds and retrying"
                 )
-                time.sleep(30)
+                time.sleep(120)
                 server.bind(("0.0.0.0", self.listen_port))
 
             server.listen()
@@ -91,14 +91,16 @@ class TCPServer:
                     logging.debug("Download mode selected")
                     with open(file_path, "rb") as file:
                         data = file.read(self.chunk_size)
-                    for num in range(self.chunks):
-                        logging.info(f"Sending data chunk {num+1} of {self.chunks}")
+                    for _ in range(self.chunks):
                         client_sock.sendall(data)
                 else:
                     logging.info("Upload mode selected")
-                    for num in range(self.chunks):
-                        logging.info(f"Receiving data chunk {num+1} of {self.chunks}")
-                        data = client_sock.recv(self.chunk_size)
+                    while True:
+                        actual_len = len(
+                            client_sock.recv(self.chunk_size * self.chunks)
+                        )
+                        if actual_len == 0:
+                            break
             logging.info("Client connection closed")
         logging.info("Server closed")
         self.ready_for_conns.clear()
@@ -139,19 +141,26 @@ class TCPServer:
             logging.error(f"Error: {e}")
         return client_socket
 
-    def __download_data_chunks(self):
+    def __download_data_chunks(self, logger):
         """Client that connects to this server and receives data from it."""
         client = self.__connect_socket_with_interface()
         with client:
+            actual_len = len(client.recv(self.chunk_size))
+            count = 0
             while True:
                 try:
-                    client.recv(self.chunk_size)
+                    actual_len = len(client.recv(self.chunks * self.chunk_size))
+                    if actual_len != 0:
+                        count += 1
+                        logger.info(f"Downloaded chunk {count} of size {actual_len}")
+                    else:
+                        break
                 except BrokenPipeError:
                     break
                 except ConnectionResetError:
                     break
 
-    def __upload_data_chunks(self):
+    def __upload_data_chunks(self, logger):
         """Client that connects to this server and sends data to it."""
         client = self.__connect_socket_with_interface()
         client.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -159,16 +168,19 @@ class TCPServer:
         with open(file_path, "rb") as file:
             data = file.read(self.chunk_size)
         with client:
-            while True:
+            for chunk_num in range(self.chunks):
                 try:
                     client.sendall(data)
+                    logger.info(f"Uploaded data chunk {chunk_num + 1}")
                 except BrokenPipeError:
                     break
                 except ConnectionResetError:
                     break
 
-    def transfer_data(self) -> UsageCounter:
+    def transfer_data(self, logger=None) -> UsageCounter:
         """Decide whether to download or upload data chunks based on self.download flag."""
+        if logger is None:
+            logger = logging.getLogger(__name__)
         # Get first network interface if not specified
         if not self.client_iface:
             network_interface = list(netifaces.interfaces())[0]
@@ -178,9 +190,9 @@ class TCPServer:
             get_usage_data(network_interface)
         )
         if self.download:
-            self.__download_data_chunks()
+            self.__download_data_chunks(logger)
         else:
-            self.__upload_data_chunks()
+            self.__upload_data_chunks(logger)
         packets_tx_after, packets_rx_after, bytes_tx_after, bytes_rx_after = (
             get_usage_data(network_interface)
         )
