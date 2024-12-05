@@ -146,7 +146,7 @@ class TestAttributeChecks:
         if total_octets > 4 * 1024 * 1024 * 1024:
             self.__verify_usage_increasing(packets, pe.get_total_input_octets)
         else:
-            pytest.skip("Download octets under 4 GB, Acct-Input-Gigaword not used.")
+            pytest.skip("Download octets under 4 GB, Acct-Output-Gigaword not used.")
 
 
 class TestAccuracyChecks:

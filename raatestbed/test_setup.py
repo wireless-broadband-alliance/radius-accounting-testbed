@@ -238,12 +238,18 @@ def generate_pcap(test_config: TestConfig, logger: logging.Logger, debug=False):
     begin_data_transfer = time.perf_counter()
     if test_config.download_chunks:
         data_server.start(download=True)
-        usage_download = data_server.transfer_data()
+        usage_download = data_server.transfer_data(logger=logger)
+        logger.debug(f"usage_download: {usage_download}")
     else:
         usage_download = None
+
     if test_config.upload_chunks:
+        if test_config.download_chunks:
+            logger.info("sleeping for 10 seconds")
+            time.sleep(10)
         data_server.start(download=False)
-        usage_upload = data_server.transfer_data()
+        usage_upload = data_server.transfer_data(logger=logger)
+        logger.debug(f"usage_upload: {usage_upload}")
     else:
         usage_upload = None
 
@@ -253,6 +259,8 @@ def generate_pcap(test_config: TestConfig, logger: logging.Logger, debug=False):
     session_duration = int(end - begin)
     data_transfer_duration = end - begin_data_transfer
     logger.info(f"Data transfer completed in {data_transfer_duration:.2f} seconds")
+
+    time.sleep(10)
     test.stop()
 
     # Write test metadata to file.
