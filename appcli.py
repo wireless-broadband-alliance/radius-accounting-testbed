@@ -171,7 +171,8 @@ def get_testconfig(cliargs, configargs) -> ts.TestConfig:
     possible_markers = get_possible_markers()
 
     # Based on the input from CLI and config file, decide the values for TestConfig
-    cliargs["markers"] = change_marker_format(cliargs["markers"])
+    if cliargs["markers"]:
+        cliargs["markers"] = change_marker_format(cliargs["markers"])
 
     # Decide if we need to upload/download chunks based on the data server IP
     data_server_ip = get_input_value(
