@@ -239,11 +239,17 @@ def generate_pcap(test_config: TestConfig, logger: logging.Logger, debug=False):
     if test_config.download_chunks:
         data_server.start(download=True)
         usage_download = data_server.transfer_data(logger=logger)
+        logger.debug(f"usage_download: {usage_download}")
     else:
         usage_download = None
+
     if test_config.upload_chunks:
+        if test_config.download_chunks:
+            logger.info("sleeping for 10 seconds")
+            time.sleep(10)
         data_server.start(download=False)
         usage_upload = data_server.transfer_data(logger=logger)
+        logger.debug(f"usage_upload: {usage_upload}")
     else:
         usage_upload = None
 

@@ -75,7 +75,8 @@ class TCPServer:
 
     def __tcp_server(self, download=True):
         """Server that listens for incoming connections and sends or receives random data to clients."""
-        logging.info("Starting TCP data server...")
+        mode = "download" if download else "upload"
+        logging.info(f"Starting TCP data server (mode={mode})...")
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
             try:
                 server.bind(("0.0.0.0", self.listen_port))
@@ -165,7 +166,7 @@ class TCPServer:
         byte_count = 0
         while True:
             try:
-                actual_len = len(sock.recv(expected_download_bytes))
+                actual_len = len(sock.recv(self.chunk_size))
                 if actual_len != 0:
                     count += 1
                     byte_count += actual_len
@@ -183,7 +184,8 @@ class TCPServer:
     def __download_data_chunks(self, logger):
         """Client that connects to this server and receives data from it."""
         client = self.__connect_socket_with_interface()
-        self.__rx_data_chunks(logger, client, verb="Client downloaded")
+        with client:
+            self.__rx_data_chunks(logger, client, verb="Client downloaded")
 
     def __upload_data_chunks(self, logger):
         """Client that connects to this server and sends data to it."""
@@ -205,6 +207,7 @@ class TCPServer:
             self.__download_data_chunks(logger)
         else:
             self.__upload_data_chunks(logger)
+        time.sleep(1)
         usage_after = get_usage_data(network_interface)
         return usage_after.subtract(usage_before)
 
