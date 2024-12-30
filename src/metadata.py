@@ -3,8 +3,8 @@
 import json
 from datetime import datetime
 from dataclasses import dataclass
-from raatestbed.files import get_metadata_filename
-from raatestbed.data_transfer import UsageCounter
+from files import get_metadata_filename
+from data_transfer import UsageCounter
 from typing import Union
 
 
