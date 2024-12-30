@@ -8,10 +8,10 @@ from scapy.all import Radius
 from fpdf import FPDF, XPos, YPos
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-import raatestbed.pcap_extract as pe
-import raatestbed.files as files
-from raatestbed.metadata import Metadata, get_metadata
-from raatestbed.defaults import ROOT_DIR as DEFAULT_ROOT_DIR
+import src.pcap_extract as pe
+import src.files as files
+from src.metadata import Metadata, get_metadata
+from src.defaults import ROOT_DIR as DEFAULT_ROOT_DIR
 
 
 ARGNAME_ROOT_DIR = "--root_dir"
