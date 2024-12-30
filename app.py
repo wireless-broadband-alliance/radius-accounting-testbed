@@ -2,16 +2,16 @@
 
 import streamlit as st
 import logging
-import raatestbed.test_setup as ts
+import src.test_setup as ts
 import pytest
 import time
 import yaml
 import os
 from typing import List
 from streamlit.logger import get_logger
-from raatestbed.test_setup import TestConfig
-import raatestbed.files as files
-import raatestbed.defaults as defaults
+from src.test_setup import TestConfig
+import src.files as files
+import src.defaults as defaults
 
 
 def get_selected_markers(possible_markers, checked_markers=[]) -> List[str]:

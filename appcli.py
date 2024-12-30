@@ -1,15 +1,15 @@
 """CLI for RADIUS Accounting Assurance Test Bed"""
 
 import argparse
-import raatestbed.test_setup as ts
+import src.test_setup as ts
 import logging
 import pytest
 import yaml
 import os
-from raatestbed.metadata import get_metadata
-import raatestbed.defaults as defaults
+from src.metadata import get_metadata
+import src.defaults as defaults
 from typing import Union
-import raatestbed.files as files
+import src.files as files
 
 
 def get_possible_markers():

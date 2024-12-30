@@ -10,10 +10,10 @@ from datetime import datetime
 from typing import List
 from dataclasses import dataclass
 
-import raatestbed.processes as procs
-import raatestbed.files as files
-from raatestbed.data_transfer import TCPServer
-from raatestbed.metadata import Metadata
+import src.processes as procs
+import src.files as files
+from src.data_transfer import TCPServer
+from src.metadata import Metadata
 
 
 @dataclass

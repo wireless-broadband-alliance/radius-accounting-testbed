@@ -8,7 +8,7 @@ import signal
 import os
 import threading
 import logging
-from raatestbed.defaults import SSID as DEFAULT_SSID
+from src.defaults import SSID as DEFAULT_SSID
 
 
 class Command:
