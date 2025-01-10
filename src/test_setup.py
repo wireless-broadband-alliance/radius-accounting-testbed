@@ -12,6 +12,7 @@ from dataclasses import dataclass
 
 import src.processes as procs
 import src.files as files
+import src.defaults as defaults
 from src.data_transfer import TCPServer
 from src.metadata import Metadata
 
@@ -71,6 +72,38 @@ class TestConfig:
         with open(config, "w") as file:
             yaml.dump(self.__to_dict__(), file)
 
+def get_testconfig(test_name: str,
+                   data_server_ip: str,
+                   data_server_port: int,
+                   cliargs: dict,
+                   configargs: dict | None) -> TestConfig:
+    """Create TestConfig object with CLI + config args. A TestConfig object is needed for executing tests."""
+
+    #Merge CLI + config + default args. CLI args take precedence.
+    all_opts = defaults.get_all_args(cliargs, configargs)
+
+    #Create TestConfig object
+    test_config = TestConfig(
+        test_name=test_name,
+        data_server_ip=data_server_ip,
+        data_server_port=data_server_port,
+        data_server_listen_port=all_opts[defaults.KEY_DATA_SERVER_LISTEN_PORT],
+        chunk_size=all_opts[defaults.KEY_CHUNK_SIZE],
+        chunks=all_opts[defaults.KEY_CHUNKS],
+        ssid=all_opts[defaults.KEY_SSID],
+        generate_pcap=all_opts[defaults.KEY_GENERATE_PCAP],
+        generate_report=all_opts[defaults.KEY_GENERATE_REPORT],
+        upload_chunks=all_opts[defaults.KEY_UPLOAD_CHUNKS],
+        download_chunks=all_opts[defaults.KEY_DOWNLOAD_CHUNKS],
+        markers=all_opts[defaults.KEY_MARKERS],
+        client_interface=all_opts[defaults.KEY_CLIENT_IFACE],
+        server_interface=all_opts[defaults.KEY_SERVER_IFACE],
+        local_output_directory=all_opts[defaults.KEY_ROOT_DIR],
+        sut_brand=all_opts[defaults.KEY_BRAND],
+        sut_hardware=all_opts[defaults.KEY_HARDWARE],
+        sut_software=all_opts[defaults.KEY_SOFTWARE],
+    )
+    return test_config
 
 def read_config_file(filename: str) -> TestConfig:
     """Read test configuration from a YAML file"""
@@ -288,3 +321,4 @@ def generate_pcap(test_config: TestConfig, logger: logging.Logger, debug=False):
     with open(filename_withdir, "w") as f:
         json.dump(test_metadata_dict, f)
     logger.info(f"Test {test_config.test_name} completed")
+

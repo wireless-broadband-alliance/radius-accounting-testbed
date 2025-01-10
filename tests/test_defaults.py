@@ -4,8 +4,8 @@ import src.defaults as defaults
 @pytest.fixture()
 def cliargs():
     cliargs = {
-      defaults.KEY_WIRED_IFACE: "eth_fron_cli",
-      defaults.KEY_WIRELESS_IFACE: "wlan_from_cli",
+      defaults.KEY_SERVER_IFACE: "eth_fron_cli",
+      defaults.KEY_CLIENT_IFACE: "wlan_from_cli",
       defaults.KEY_SSID: "ssid_from_cli",
       defaults.KEY_GENERATE_PCAP: True,
       defaults.KEY_DOWNLOAD_CHUNKS: True,
@@ -15,8 +15,8 @@ def cliargs():
 @pytest.fixture()
 def configargs():
     configargs = {
-      defaults.KEY_WIRED_IFACE: "eth_fron_config",
-      defaults.KEY_WIRELESS_IFACE: "wlan_from_config",
+      defaults.KEY_SERVER_IFACE: "eth_fron_config",
+      defaults.KEY_CLIENT_IFACE: "wlan_from_config",
       defaults.KEY_SSID: "ssid_from_config",
       defaults.KEY_GENERATE_PCAP: False,
       defaults.KEY_DOWNLOAD_CHUNKS: False,
@@ -39,8 +39,8 @@ def test_arg_priority(cliargs, configargs):
   final = defaults.get_all_args(cliargs, configargs)
 
   #CLI args should take priority over both config and default args
-  assert final[defaults.KEY_WIRED_IFACE] == cliargs[defaults.KEY_WIRED_IFACE]
-  assert final[defaults.KEY_WIRELESS_IFACE] == cliargs[defaults.KEY_WIRELESS_IFACE]
+  assert final[defaults.KEY_SERVER_IFACE] == cliargs[defaults.KEY_SERVER_IFACE]
+  assert final[defaults.KEY_CLIENT_IFACE] == cliargs[defaults.KEY_CLIENT_IFACE]
   assert final[defaults.KEY_SSID] == cliargs[defaults.KEY_SSID]
   assert final[defaults.KEY_GENERATE_PCAP] == cliargs[defaults.KEY_GENERATE_PCAP]
   assert final[defaults.KEY_DOWNLOAD_CHUNKS] == cliargs[defaults.KEY_DOWNLOAD_CHUNKS]
