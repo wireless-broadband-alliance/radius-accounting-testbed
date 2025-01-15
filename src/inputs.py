@@ -81,9 +81,6 @@ def get_all_args(*dicts) -> ChainMap:
         for key in required_args:
             if key in _dict.keys():
                 _dict.pop(key)
-        for key in _dict.keys():
-            if key not in defaults.keys():
-                raise KeyError(f"Unknown key {key} found in dictionary {_dict}. Expected keys: {defaults.keys()}")
         new_dicts.append(_dict)
     new_dicts.append(defaults)
     return ChainMap(*new_dicts)
