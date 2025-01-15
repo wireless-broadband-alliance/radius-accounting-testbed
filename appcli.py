@@ -159,6 +159,7 @@ def create_testconfig(args_from_cli, args_from_config):
     test_name = args_from_cli["test_name"]
     data_server_ip = args_from_cli["data_server_ip"]
     data_server_port = args_from_cli["data_server_port"]
+    args_from_cli.pop('config')
     return ts.get_testconfig(test_name, data_server_ip, data_server_port, args_from_cli, args_from_config)
 
 def main():
