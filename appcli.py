@@ -10,8 +10,6 @@ from src.metadata import get_metadata
 import src.defaults as defaults
 from typing import Union
 import src.files as files
-from tests.test_data_transfer import data_server
-from tests.test_defaults import configargs
 
 
 def get_possible_markers():
@@ -121,7 +119,6 @@ def execute_test_cases(config: ts.TestConfig, logger: logging.Logger):
     metadata = get_metadata(test_name, config.local_output_directory)
     logger.info(f'\n\nMetadata for "{test_name}":\n{metadata.pretty_print_format()}\n')
     markers = " or ".join(config.markers)
-    markers_log = " ".join(config.markers)
     pytest_args = ["-v", "raatests", "--test_name", test_name]
     extra_args = ["-m", markers]
     logger.debug(f"\n\npytest args: {pytest_args + extra_args}\n")
@@ -157,12 +154,12 @@ def import_config_file(cliargs: dict) -> dict:
             configargs = yaml.safe_load(file)
     return configargs
 
-def create_testconfig(cliargs, configargs):
+def create_testconfig(args_from_cli, args_from_config):
     """Create TestConfig object"""
-    test_name = cliargs["test_name"]
-    data_server_ip = cliargs["data_server_ip"]
-    data_server_port = cliargs["data_server_port"]
-    return ts.get_testconfig(test_name, data_server_ip, data_server_port, cliargs, configargs)
+    test_name = args_from_cli["test_name"]
+    data_server_ip = args_from_cli["data_server_ip"]
+    data_server_port = args_from_cli["data_server_port"]
+    return ts.get_testconfig(test_name, data_server_ip, data_server_port, args_from_cli, args_from_config)
 
 def main():
     #Parse CLI and config file args
