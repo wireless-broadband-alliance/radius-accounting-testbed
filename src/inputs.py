@@ -3,7 +3,7 @@
 import os
 from collections import ChainMap
 
-KEY_ROOT_DIR = "root_dir"
+KEY_ROOT_DIR = "local_output_dir"
 KEY_CLIENT_IFACE = "client_iface"
 KEY_SERVER_IFACE = "server_iface"
 KEY_CHUNK_SIZE = "chunk_size"
@@ -65,7 +65,7 @@ def get_defaults() -> dict:
      KEY_MARKERS: MARKERS,
      KEY_BRAND: BRAND,
      KEY_HARDWARE: HARDWARE,
-     KEY_SOFTWARE: SOFTWARE
+     KEY_SOFTWARE: SOFTWARE,
 
    }
    return defaults
