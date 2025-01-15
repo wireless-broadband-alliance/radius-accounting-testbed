@@ -7,7 +7,7 @@ import pytest
 import yaml
 import os
 from src.metadata import get_metadata
-import src.defaults as defaults
+import src.inputs as inputs
 from typing import Union
 import src.files as files
 
@@ -15,7 +15,7 @@ import src.files as files
 def get_possible_markers():
     """Generate markers from pytest.ini file."""
     curdir = os.path.dirname(os.path.abspath(__file__))
-    pytest_ini_file = os.path.join(curdir, defaults.RELATIVE_PYTEST_INI)
+    pytest_ini_file = os.path.join(curdir, inputs.RELATIVE_PYTEST_INI)
     return files.get_marker_list(pytest_ini_file)
 
 
@@ -40,68 +40,68 @@ def parse_cliargs():
         "--config", type=str, help="Optional config file to get input from"
     )
     parser.add_argument(
-        f"--{defaults.KEY_MARKERS}",
+        f"--{inputs.KEY_MARKERS}",
         type=str,
         default=None,
         help=f"Test Markers: {markers_str}",
     )
     parser.add_argument("--debug", action="store_true")
     parser.add_argument(
-        f"--{defaults.KEY_DATA_SERVER_LISTEN_PORT}",
+        f"--{inputs.KEY_DATA_SERVER_LISTEN_PORT}",
         type=str,
         default=None,
-        help=f"default: {defaults.DATA_SERVER_LISTEN_PORT}",
+        help=f"default: {inputs.DATA_SERVER_LISTEN_PORT}",
     )
     parser.add_argument(
-        f"--{defaults.KEY_ROOT_DIR}",
+        f"--{inputs.KEY_ROOT_DIR}",
         type=str,
         default=None,
-        help=f"default: {defaults.ROOT_DIR}",
+        help=f"default: {inputs.ROOT_DIR}",
     )
     parser.add_argument(
-        f"--{defaults.KEY_CHUNK_SIZE}",
+        f"--{inputs.KEY_CHUNK_SIZE}",
         type=int,
         default=None,
-        help=f"default: {defaults.CHUNK_SIZE}",
+        help=f"default: {inputs.CHUNK_SIZE}",
     )
     parser.add_argument(
-        f"--{defaults.KEY_CHUNKS}",
+        f"--{inputs.KEY_CHUNKS}",
         type=int,
         default=None,
-        help=f"Number of chunks to pull, default: {defaults.CHUNKS}",
+        help=f"Number of chunks to pull, default: {inputs.CHUNKS}",
     )
     parser.add_argument(
-        f"--{defaults.KEY_SSID}", type=str, default=None, help=f"default: {defaults.SSID}"
+        f"--{inputs.KEY_SSID}", type=str, default=None, help=f"default: {inputs.SSID}"
     )
     parser.add_argument(
-        f"--{defaults.KEY_SOFTWARE}",
+        f"--{inputs.KEY_SOFTWARE}",
         type=str,
         default=None,
         help="Software info for System Under Test (SUT)",
     )
     parser.add_argument(
-        f"--{defaults.KEY_BRAND}",
+        f"--{inputs.KEY_BRAND}",
         type=str,
         default=None,
         help="Brand of System Under Test (SUT)"
     )
     parser.add_argument(
-        f"--{defaults.KEY_HARDWARE}",
+        f"--{inputs.KEY_HARDWARE}",
         type=str,
         default=None,
         help="Hardware info for System Under Test (SUT)",
     )
     parser.add_argument(
-        f"--{defaults.KEY_CLIENT_IFACE}",
+        f"--{inputs.KEY_CLIENT_IFACE}",
         type=str,
         default=None,
-        help=f"default: {defaults.CLIENT_IFACE}",
+        help=f"default: {inputs.CLIENT_IFACE}",
     )
     parser.add_argument(
-        f"--{defaults.KEY_SERVER_IFACE}",
+        f"--{inputs.KEY_SERVER_IFACE}",
         type=str,
         default=None,
-        help=f"default: {defaults.SERVER_IFACE}",
+        help=f"default: {inputs.SERVER_IFACE}",
     )
     parser.add_argument("--no_pcap", action="store_true", help="Skip PCAP generation")
     parser.add_argument(
