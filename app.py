@@ -2,14 +2,14 @@
 
 import streamlit as st
 import logging
-import src.test_setup as ts
+import src.testbed_setup as ts
 import pytest
 import time
 import yaml
 import os
 from typing import List
 from streamlit.logger import get_logger
-from src.test_setup import TestConfig
+from src.testbed_setup import TestConfig
 import src.files as files
 import src.inputs as inputs
 
@@ -128,16 +128,16 @@ def checkbox_select_test_parts(
     return generate_pcap, execute_test_cases
 
 
-def text_input_client_interface(default=inputs.WIRELESS_IFACE):
-    """Wireless interface input field"""
+def text_input_client_interface(default=inputs.KEY_CLIENT_IFACE):
+    """Client interface input field"""
     help = "Wireless interface used by the 802.1X client."
-    return st.text_input("Wireless Client Interface", value=default, help=help)
+    return st.text_input("Client Interface", value=default, help=help)
 
 
-def text_input_server_interface(default=inputs.WIRED_IFACE):
-    """Wired interface input field"""
-    help = "Wired interface used by the RADIUS and data servers."
-    return st.text_input("Wired Server Interface", value=default, help=help)
+def text_input_server_interface(default=inputs.KEY_SERVER_IFACE):
+    """Server interface input field"""
+    help = "Interface used by the RADIUS and data servers."
+    return st.text_input("Server Interface", value=default, help=help)
 
 
 def text_input_local_output_directory(default=inputs.ROOT_DIR):

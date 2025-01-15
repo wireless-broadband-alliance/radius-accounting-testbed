@@ -1,7 +1,7 @@
 """CLI for RADIUS Accounting Assurance Test Bed"""
 
 import argparse
-import src.test_setup as ts
+import src.testbed_setup as ts
 import logging
 import pytest
 import yaml
