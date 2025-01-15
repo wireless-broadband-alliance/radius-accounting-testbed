@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import src.pcap_extract as pe
 import src.files as files
 from src.metadata import Metadata, get_metadata
-from src.defaults import ROOT_DIR as DEFAULT_ROOT_DIR
+from src.inputs import ROOT_DIR as DEFAULT_ROOT_DIR
 
 
 ARGNAME_ROOT_DIR = "--root_dir"
