@@ -77,6 +77,8 @@ def get_all_args(*dicts) -> ChainMap:
     defaults = get_defaults()
     required_args = get_required_args()
     for _dict in dicts:
+        #Remove any keys with None values
+        _dict = {k: v for k, v in _dict.items() if v is not None}
         #Remove all keys in list required_args from _dict
         for key in required_args:
             if key in _dict.keys():
