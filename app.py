@@ -214,10 +214,10 @@ def build_form(opts):
     config = TestConfig(
         test_name=test_name,
         data_server_ip=data_server_ip,
-        data_server_port=data_server_port,
+        data_server_port=int(data_server_port),
         chunk_size=chunk_size,
         chunks=chunks,
-        data_server_listen_port=data_server_listen_port,
+        data_server_listen_port=int(data_server_listen_port),
         ssid=ssid,
         sut_brand=sut_brand,
         sut_hardware=sut_hardware,
