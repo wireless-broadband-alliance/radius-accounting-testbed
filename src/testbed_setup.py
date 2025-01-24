@@ -72,6 +72,11 @@ class TestConfig:
         with open(config, "w") as file:
             yaml.dump(self.__to_dict__(), file)
 
+def get_possible_markers():
+    """Generate markers from pytest.ini file."""
+    curdir = os.path.dirname(os.path.abspath(__file__))
+    pytest_ini_file = os.path.join(curdir, inputs.RELATIVE_PYTEST_INI)
+    return files.get_marker_list(pytest_ini_file)
 def get_testconfig(test_name: str,
                    data_server_ip: str,
                    data_server_port: int,

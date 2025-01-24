@@ -113,6 +113,18 @@ def parse_cliargs():
     )
     return parser.parse_args()
 
+def convert_markers(markers: str) -> list:
+    """Convert markers string to list."""
+    possible_delims = [",", ";", " "]
+    #convert to list if delim is found
+    for delim in possible_delims:
+        if delim in markers:
+            break
+    markers_tmp = markers.split(delim)
+    spaces_removed = [marker.strip() for marker in markers_tmp]
+    #Get rid of empty strings
+    return [marker for marker in spaces_removed if marker]
+
 def execute_test_cases(config: ts.TestConfig, logger: logging.Logger):
     """Run tests against PCAP."""
     test_name = config.test_name
@@ -164,6 +176,7 @@ def create_testconfig(args_from_cli, args_from_config):
 def main():
     #Parse CLI and config file args
     cliargs = vars(parse_cliargs())
+    cliargs["markers"] = change_marker_format(cliargs["markers"])
     configargs = import_config_file(cliargs)
 
     #Set up logging
