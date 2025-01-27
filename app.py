@@ -43,7 +43,7 @@ def text_input_data_server_ip(value=None):
     return st.text_input(text, help=help)
 
 
-def text_input_data_server_port(value="") -> str:
+def text_input_data_server_port(value=inputs.DATA_SERVER_PORT) -> str:
     """Data Server port input field for download"""
     help = "This is the port of the data server used for downloading and uploading chunks of data."
     text = "Data Server Port"
@@ -255,7 +255,7 @@ def main():
         logger.addHandler(handler)
         if config.generate_pcap:
             ts.generate_pcap(config, logger)
-        if config.execute_test_cases:
+        if config.generate_report:
             execute_test_cases(config, logger, config.markers)
 
 
