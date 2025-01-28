@@ -10,10 +10,11 @@ from datetime import datetime
 from typing import List
 from dataclasses import dataclass
 
-import raatestbed.processes as procs
-import raatestbed.files as files
-from raatestbed.data_transfer import TCPServer
-from raatestbed.metadata import Metadata
+import src.processes as procs
+import src.files as files
+import src.inputs as inputs
+from src.data_transfer import TCPServer
+from src.metadata import Metadata
 
 
 @dataclass
@@ -71,6 +72,43 @@ class TestConfig:
         with open(config, "w") as file:
             yaml.dump(self.__to_dict__(), file)
 
+def get_possible_markers():
+    """Generate markers from pytest.ini file."""
+    curdir = os.path.dirname(os.path.abspath(__file__))
+    pytest_ini_file = os.path.join(curdir, inputs.RELATIVE_PYTEST_INI)
+    return files.get_marker_list(pytest_ini_file)
+def get_testconfig(test_name: str,
+                   data_server_ip: str,
+                   data_server_port: int,
+                   cliargs: dict,
+                   configargs: dict | None) -> TestConfig:
+    """Create TestConfig object with CLI + config args. A TestConfig object is needed for executing tests."""
+
+    #Merge CLI + config + default args. CLI args take precedence.
+    all_opts = inputs.get_all_args(cliargs, configargs)
+
+    #Create TestConfig object
+    test_config = TestConfig(
+        test_name=test_name,
+        data_server_ip=data_server_ip,
+        data_server_port=data_server_port,
+        data_server_listen_port=all_opts[inputs.KEY_DATA_SERVER_LISTEN_PORT],
+        chunk_size=all_opts[inputs.KEY_CHUNK_SIZE],
+        chunks=all_opts[inputs.KEY_CHUNKS],
+        ssid=all_opts[inputs.KEY_SSID],
+        generate_pcap=all_opts[inputs.KEY_GENERATE_PCAP],
+        generate_report=all_opts[inputs.KEY_GENERATE_REPORT],
+        upload_chunks=all_opts[inputs.KEY_UPLOAD_CHUNKS],
+        download_chunks=all_opts[inputs.KEY_DOWNLOAD_CHUNKS],
+        markers=all_opts[inputs.KEY_MARKERS],
+        client_interface=all_opts[inputs.KEY_CLIENT_IFACE],
+        server_interface=all_opts[inputs.KEY_SERVER_IFACE],
+        local_output_directory=all_opts[inputs.KEY_ROOT_DIR],
+        sut_brand=all_opts[inputs.KEY_BRAND],
+        sut_hardware=all_opts[inputs.KEY_HARDWARE],
+        sut_software=all_opts[inputs.KEY_SOFTWARE],
+    )
+    return test_config
 
 def read_config_file(filename: str) -> TestConfig:
     """Read test configuration from a YAML file"""
@@ -288,3 +326,4 @@ def generate_pcap(test_config: TestConfig, logger: logging.Logger, debug=False):
     with open(filename_withdir, "w") as f:
         json.dump(test_metadata_dict, f)
     logger.info(f"Test {test_config.test_name} completed")
+

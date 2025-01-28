@@ -8,3 +8,5 @@ env*
 venv*
 
 tmp
+
+.DS_STORE

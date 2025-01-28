@@ -4,6 +4,14 @@ import os
 import configparser
 
 
+SUBDIRS = {
+    "metadata": "metadata",
+    "pcap": "pcap",
+    "reports": "reports",
+    "config": "config",
+    "logs": "logs",
+}
+
 def init_dirs(root_dir: str):
     """Initialize all directory."""
     os.makedirs(root_dir, exist_ok=True)
@@ -33,27 +41,27 @@ def init_subdirectories(root_dir: str):
 
 def get_metadata_dir(root_dir: str) -> str:
     """Return metadata directory."""
-    return os.path.join(root_dir, "metadata")
+    return os.path.join(root_dir, SUBDIRS["metadata"])
 
 
 def get_pcap_dir(root_dir: str) -> str:
     """Return pcap directory."""
-    return os.path.join(root_dir, "pcap")
+    return os.path.join(root_dir, SUBDIRS["pcap"])
 
 
 def get_reports_dir(root_dir: str) -> str:
     """Return report directory."""
-    return os.path.join(root_dir, "reports")
+    return os.path.join(root_dir, SUBDIRS["reports"])
 
 
 def get_config_dir(root_dir: str) -> str:
     """Return config directory."""
-    return os.path.join(root_dir, "config")
+    return os.path.join(root_dir, SUBDIRS["config"])
 
 
 def get_logs_dir(root_dir: str) -> str:
     """Return logs directory."""
-    return os.path.join(root_dir, "logs")
+    return os.path.join(root_dir, SUBDIRS["logs"])
 
 
 def get_metadata_filename(test_name, root_dir) -> str:

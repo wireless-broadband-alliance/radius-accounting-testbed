@@ -1,4 +1,4 @@
-#!/usr/bin/sh
+#!/usr/bin/env sh
 
 set -eu
 
@@ -77,5 +77,3 @@ add_line_to_file "$line_to_add" "$file"
 #Make changes to eap module
 sed -i 's/^\tdefault_eap_type.*/\tdefault_eap_type = ttls/g' $fr_base_dir/mods-enabled/eap
 sed -i 's/^\t\tdefault_eap_type.*/\t\tdefault_eap_type = mschapv2/g' $fr_base_dir/mods-enabled/eap
-
-systemctl disable --now freeradius
