@@ -72,6 +72,7 @@ class WpaSupplicant(Command):
         ssid=DEFAULT_SSID,
         wait_time=5,
         config_location="/tmp/wpa_supplicant.conf",
+        cmd = None
     ):
         self.interface = interface
         self.log_location = log_location
@@ -79,19 +80,21 @@ class WpaSupplicant(Command):
         self.config_location = config_location
         self.wait_time = wait_time
         self.username = None
+        self.cmd = cmd
         self.initialize()
 
     def initialize(self):
         """Write new wpa_supplicant config file and get command"""
         self.write_wpa_supplicant_conf()
-        cmd = [
-            "wpa_supplicant",
-            "-c",
-            self.config_location,
-            "-i",
-            self.interface,
-        ]
-        super().__init__("wpa_supplicant", cmd, self.log_location, self.wait_time)
+        if self.cmd is None:
+            self.cmd = [
+                "wpa_supplicant",
+                "-c",
+                self.config_location,
+                "-i",
+                self.interface,
+            ]
+        super().__init__("wpa_supplicant", self.cmd, self.log_location, self.wait_time)
 
     def get_username(self) -> str:
         if self.username is None:
