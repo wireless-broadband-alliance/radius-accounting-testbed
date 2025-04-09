@@ -56,9 +56,7 @@ Make sure you have the required packages installed (see below). These should alr
 1. Python3
 2. Python virtualenv (optional but recommended)
 
-Clone this repository and navigate to the root directory.
-
-Create the virtual environment:
+Navigate to the root directory of this repository and create the Python virtual environment.
 
 ```bash
 python3 -m venv env
@@ -237,28 +235,25 @@ python3 appcli.py --help
 There are several options available to the user. The following is the help output:
 
 ```bash
-usage: appcli.py [-h] [--data_server_port DATA_SERVER_PORT] [--config CONFIG] [--markers MARKERS] [--interface INTERFACE] [--debug]
-                 [--data_server_listen_port DATA_SERVER_LISTEN_PORT] [--local_output_directory LOCAL_OUTPUT_DIRECTORY] [--chunk_size CHUNK_SIZE] [--chunks CHUNKS]
-                 [--ssid SSID] [--sut_software SUT_SOFTWARE] [--sut_brand SUT_BRAND] [--sut_hardware SUT_HARDWARE] [--client_interface CLIENT_INTERFACE]
-                 [--server_interface SERVER_INTERFACE] [--no_pcap] [--no_test] [--no_upload] [--no_download]
-                 test_name data_server_ip
+usage: appcli.py [-h] [--config CONFIG] [--markers MARKERS] [--debug] [--data_server_listen_port DATA_SERVER_LISTEN_PORT]
+                 [--local_output_dir LOCAL_OUTPUT_DIR] [--chunk_size CHUNK_SIZE] [--chunks CHUNKS] [--ssid SSID] [--sut_software SUT_SOFTWARE]
+                 [--sut_brand SUT_BRAND] [--sut_hardware SUT_HARDWARE] [--client_iface CLIENT_IFACE] [--server_iface SERVER_IFACE] [--no_pcap]
+                 [--no_test] [--no_upload] [--no_download]
+                 test_name data_server_ip data_server_port
 
 positional arguments:
   test_name             Name of the test to run
-  data_server_ip        IP of the server to download data from
+  data_server_ip        IP of the data server for uploading and downloading
+  data_server_port      Port of the data server for uploading and downloading
 
 options:
   -h, --help            show this help message and exit
-  --data_server_port DATA_SERVER_PORT
-                        Port of the server to download data from (default: 8000)
   --config CONFIG       Optional config file to get input from
-  --markers MARKERS     Test Markers: core, core-upload, core-download, openroaming (default)
-  --interface INTERFACE
-                        Interface used to get data from (default: wlan0)
+  --markers MARKERS     Test Markers: core, core_upload, core_download, openroaming
   --debug
   --data_server_listen_port DATA_SERVER_LISTEN_PORT
                         default: 8000
-  --local_output_directory LOCAL_OUTPUT_DIRECTORY
+  --local_output_dir LOCAL_OUTPUT_DIR
                         default: /usr/local/raa
   --chunk_size CHUNK_SIZE
                         default: 1024
@@ -270,9 +265,9 @@ options:
                         Brand of System Under Test (SUT)
   --sut_hardware SUT_HARDWARE
                         Hardware info for System Under Test (SUT)
-  --client_interface CLIENT_INTERFACE
+  --client_iface CLIENT_IFACE
                         default: wlan0
-  --server_interface SERVER_INTERFACE
+  --server_iface SERVER_IFACE
                         default: eth0
   --no_pcap             Skip PCAP generation
   --no_test             Skip test case execution
