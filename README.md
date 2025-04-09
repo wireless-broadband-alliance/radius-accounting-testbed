@@ -31,19 +31,24 @@ Markers are used to specify the tests to run against the PCAP. The following mar
 
 1. Download latest 64-bit Raspberry Pi OS Lite from [here](https://downloads.raspberrypi.com/raspios_lite_arm64/images).
 2. Install Raspberry Pi OS Lite from Step 1 and complete out of box setup (see [here](https://www.raspberrypi.org/documentation/installation/installing-images/README.md) for instructions).
-3. Clone this repository onto Raspberry Pi.
+3. Clone this repository onto the Raspberry Pi.
 
 ```bash
 git clone https://github.com/wireless-broadband-alliance/radius-accounting-testbed
 ```
 
-4. Run all scripts from `provisioning` folder in order as root user.
-
+4. Change directory to radius-accounting-testbed
 ```bash
-for script in $(find provisioning/ -maxdepth 1 -type f -name "*.sh" | sort); sudo ./$script
+cd radius-accounting-testbed
 ```
 
-5. Proceed to Installation section below.
+5. Run all scripts from `provisioning` folder in order as root user.
+
+```bash
+for script in $(find provisioning/ -maxdepth 1 -type f -name "*.sh" | sort); do sudo ./$script; done
+```
+
+6. Proceed to Installation section below.
 
 ### Installation
 
