@@ -6,8 +6,6 @@ This is a self-certification test bed for the WBA RADIUS Accounting Assurance Pr
 
 This test bed is designed to run a series of RADIUS tests from a range of categories (see below). The focus of the tests is to verify that the RADIUS-based NAS is compliant with the RADIUS protocol and conforms to best practices. However, the primary goal of this test bed is to verify the usage data reported in accounting is accurate.
 
-## Basic Operation
-
 This test bed will do the following:
 
 1. Control an end-to-end 802.1X/RADIUS authentication+accounting test, running a packet capture in the process.
@@ -31,19 +29,25 @@ Markers are used to specify the tests to run against the PCAP. The following mar
 
 1. Download latest 64-bit Raspberry Pi OS Lite from [here](https://downloads.raspberrypi.com/raspios_lite_arm64/images).
 2. Install Raspberry Pi OS Lite from Step 1 and complete out of box setup (see [here](https://www.raspberrypi.org/documentation/installation/installing-images/README.md) for instructions).
-3. Clone this repository onto Raspberry Pi.
+3. Clone this repository onto the Raspberry Pi.
 
 ```bash
 git clone https://github.com/wireless-broadband-alliance/radius-accounting-testbed
 ```
 
-4. Run all scripts from `provisioning` folder in order as root user.
+4. Change directory to radius-accounting-testbed
 
 ```bash
-for script in $(find provisioning/ -maxdepth 1 -type f -name "*.sh" | sort); sudo ./$script
+cd radius-accounting-testbed
 ```
 
-5. Proceed to Installation section below.
+5. Run all scripts from `provisioning` folder in order as root user.
+
+```bash
+for script in $(find provisioning/ -maxdepth 1 -type f -name "*.sh" | sort); do sudo ./$script; done
+```
+
+6. Proceed to Installation section below.
 
 ### Installation
 
@@ -52,9 +56,7 @@ Make sure you have the required packages installed (see below). These should alr
 1. Python3
 2. Python virtualenv (optional but recommended)
 
-Clone this repository and navigate to the root directory.
-
-Create the virtual environment:
+Navigate to the root directory of this repository and create the Python virtual environment.
 
 ```bash
 python3 -m venv env
@@ -233,28 +235,25 @@ python3 appcli.py --help
 There are several options available to the user. The following is the help output:
 
 ```bash
-usage: appcli.py [-h] [--data_server_port DATA_SERVER_PORT] [--config CONFIG] [--markers MARKERS] [--interface INTERFACE] [--debug]
-                 [--data_server_listen_port DATA_SERVER_LISTEN_PORT] [--local_output_directory LOCAL_OUTPUT_DIRECTORY] [--chunk_size CHUNK_SIZE] [--chunks CHUNKS]
-                 [--ssid SSID] [--sut_software SUT_SOFTWARE] [--sut_brand SUT_BRAND] [--sut_hardware SUT_HARDWARE] [--client_interface CLIENT_INTERFACE]
-                 [--server_interface SERVER_INTERFACE] [--no_pcap] [--no_test] [--no_upload] [--no_download]
-                 test_name data_server_ip
+usage: appcli.py [-h] [--config CONFIG] [--markers MARKERS] [--debug] [--data_server_listen_port DATA_SERVER_LISTEN_PORT]
+                 [--local_output_dir LOCAL_OUTPUT_DIR] [--chunk_size CHUNK_SIZE] [--chunks CHUNKS] [--ssid SSID] [--sut_software SUT_SOFTWARE]
+                 [--sut_brand SUT_BRAND] [--sut_hardware SUT_HARDWARE] [--client_iface CLIENT_IFACE] [--server_iface SERVER_IFACE] [--no_pcap]
+                 [--no_test] [--no_upload] [--no_download]
+                 test_name data_server_ip data_server_port
 
 positional arguments:
   test_name             Name of the test to run
-  data_server_ip        IP of the server to download data from
+  data_server_ip        IP of the data server for uploading and downloading
+  data_server_port      Port of the data server for uploading and downloading
 
 options:
   -h, --help            show this help message and exit
-  --data_server_port DATA_SERVER_PORT
-                        Port of the server to download data from (default: 8000)
   --config CONFIG       Optional config file to get input from
-  --markers MARKERS     Test Markers: core, core-upload, core-download, openroaming (default)
-  --interface INTERFACE
-                        Interface used to get data from (default: wlan0)
+  --markers MARKERS     Test Markers: core, core_upload, core_download, openroaming
   --debug
   --data_server_listen_port DATA_SERVER_LISTEN_PORT
                         default: 8000
-  --local_output_directory LOCAL_OUTPUT_DIRECTORY
+  --local_output_dir LOCAL_OUTPUT_DIR
                         default: /usr/local/raa
   --chunk_size CHUNK_SIZE
                         default: 1024
@@ -266,9 +265,9 @@ options:
                         Brand of System Under Test (SUT)
   --sut_hardware SUT_HARDWARE
                         Hardware info for System Under Test (SUT)
-  --client_interface CLIENT_INTERFACE
+  --client_iface CLIENT_IFACE
                         default: wlan0
-  --server_interface SERVER_INTERFACE
+  --server_iface SERVER_IFACE
                         default: eth0
   --no_pcap             Skip PCAP generation
   --no_test             Skip test case execution
