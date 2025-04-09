@@ -6,8 +6,6 @@ This is a self-certification test bed for the WBA RADIUS Accounting Assurance Pr
 
 This test bed is designed to run a series of RADIUS tests from a range of categories (see below). The focus of the tests is to verify that the RADIUS-based NAS is compliant with the RADIUS protocol and conforms to best practices. However, the primary goal of this test bed is to verify the usage data reported in accounting is accurate.
 
-## Basic Operation
-
 This test bed will do the following:
 
 1. Control an end-to-end 802.1X/RADIUS authentication+accounting test, running a packet capture in the process.
@@ -38,6 +36,7 @@ git clone https://github.com/wireless-broadband-alliance/radius-accounting-testb
 ```
 
 4. Change directory to radius-accounting-testbed
+
 ```bash
 cd radius-accounting-testbed
 ```
