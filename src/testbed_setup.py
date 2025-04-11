@@ -39,6 +39,7 @@ class TestConfig:
     sut_brand: str
     sut_hardware: str
     sut_software: str
+    radius_port: int
 
     @property
     def pcap_dir(self):
@@ -77,6 +78,7 @@ def get_possible_markers():
     curdir = os.path.dirname(os.path.abspath(__file__))
     pytest_ini_file = os.path.join(curdir, inputs.RELATIVE_PYTEST_INI)
     return files.get_marker_list(pytest_ini_file)
+
 def get_testconfig(test_name: str,
                    data_server_ip: str,
                    data_server_port: int,
@@ -87,7 +89,8 @@ def get_testconfig(test_name: str,
     #Merge CLI + config + default args. CLI args take precedence.
     all_opts = inputs.get_all_args(cliargs, configargs)
 
-    #Create TestConfig object
+    #Create final TestConfig object using merged args from CLI + config + defaults.
+    #TODO: Clean this up!
     test_config = TestConfig(
         test_name=test_name,
         data_server_ip=data_server_ip,
@@ -107,6 +110,7 @@ def get_testconfig(test_name: str,
         sut_brand=all_opts[inputs.KEY_BRAND],
         sut_hardware=all_opts[inputs.KEY_HARDWARE],
         sut_software=all_opts[inputs.KEY_SOFTWARE],
+        radius_port=all_opts[inputs.KEY_RADIUS_PORT],
     )
     return test_config
 

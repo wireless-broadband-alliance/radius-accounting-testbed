@@ -103,6 +103,11 @@ def parse_cliargs():
         default=None,
         help=f"default: {inputs.SERVER_IFACE}",
     )
+    parser.add_argument(
+        f"--{inputs.KEY_RADIUS_PORT}",
+        type=str,
+        help=f"RADIUS server auth port, default: {inputs.RADIUS_PORT}",
+    )
     parser.add_argument("--no_pcap", action="store_true", help="Skip PCAP generation")
     parser.add_argument(
         "--no_test", action="store_true", help="Skip test case execution"
@@ -193,7 +198,7 @@ def main():
 
     # Generate PCAP if enabled.
     if config.generate_pcap:
-        ts.generate_pcap(config, logger)
+        ts.generate_pcap(config, logger, cliargs["debug"])
 
     # Execute tests if enabled.
     if config.generate_report:

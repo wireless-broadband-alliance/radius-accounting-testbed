@@ -14,13 +14,16 @@ from src.inputs import SSID as DEFAULT_SSID
 class Command:
     """Base class for running commands in background and writing to log file"""
 
-    def __init__(self, name: str, command: list, log_file, wait_time=None):
+    def __init__(self, name: str, command: list, log_file, wait_time=None, env=None):
         self.command = command
         self.name = name
         self.log_file = log_file
         self.wait_time = wait_time
         self.process = None
         self.thread = None
+        if env is not None:
+            base_env = os.environ.copy()
+            self.env = {**base_env, **env}
 
         # Create directory for log file if it doesn't exist
         directory = os.path.dirname(log_file)
@@ -31,7 +34,7 @@ class Command:
     def run_subprocess(self):
         # write to log file, append if needed
         with open(self.log_file, "a") as log:
-            self.process = subprocess.Popen(self.command, stdout=log, stderr=log)
+            self.process = subprocess.Popen(self.command, stdout=log, stderr=log, env=self.env)
             self.process.wait()
 
     def start(self):
@@ -154,6 +157,7 @@ class FreeRADIUS(Command):
         log_location,
         wait_time=5,
         debug=False,
+        port=1812,
     ):
         self.log_location = log_location
         self.wait_time = wait_time

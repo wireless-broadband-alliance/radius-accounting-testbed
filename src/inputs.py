@@ -19,6 +19,7 @@ KEY_MARKERS = "markers"
 KEY_BRAND = "sut_brand"
 KEY_HARDWARE = "sut_hardware"
 KEY_SOFTWARE = "sut_software"
+KEY_RADIUS_PORT = "radius_port"
 
 KEY_DATA_SERVER_IP = "data_server_ip"
 KEY_DATA_SERVER_PORT = "data_server_port"
@@ -31,6 +32,7 @@ CHUNK_SIZE = 1024
 SSID = "raatest"
 DATA_SERVER_LISTEN_PORT = 8000
 DATA_SERVER_PORT = 8000
+RADIUS_PORT = 1812
 CHUNKS = 10
 SUT = ""
 GENERATE_PCAP = True
@@ -66,6 +68,7 @@ def get_defaults() -> dict:
      KEY_BRAND: BRAND,
      KEY_HARDWARE: HARDWARE,
      KEY_SOFTWARE: SOFTWARE,
+     KEY_RADIUS_PORT: RADIUS_PORT,
 
    }
    return defaults
