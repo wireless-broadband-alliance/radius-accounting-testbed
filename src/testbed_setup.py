@@ -199,10 +199,13 @@ class TestSetup:
     def __initialize_proc_objs(self):
         """Initialize process objects for the test"""
         self.__initialize_output_locations()
+        port = int(self.config.radius_port)
+        filter = f"port {port} or port {port + 1}"
         self.radius_tcpdump = procs.TCPDump(
             interface=self.config.server_interface,
             pcap_location=self.radius_pcap_location,
             log_location=self.radius_tcpdump_log,
+            filter=filter,
         )
         self.wpasupplicant = procs.WpaSupplicant(
             interface=self.config.client_interface,
