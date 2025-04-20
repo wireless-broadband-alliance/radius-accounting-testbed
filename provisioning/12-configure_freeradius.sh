@@ -24,12 +24,12 @@ cat <<_EOF_ | tee "$fr_virt_server_file"
 server raa {
   listen {
     type = auth
-    port = 1812
+    port = \$ENV{AUTH_PORT}
     ipaddr = *
   }
   listen {
     type = acct
-    port = 1813
+    port = \$ENV{ACCT_PORT}
     ipaddr = *
   }
   authorize {
