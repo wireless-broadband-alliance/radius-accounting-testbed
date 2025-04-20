@@ -159,6 +159,9 @@ class FreeRADIUS(Command):
         debug=False,
         port=1812,
     ):
+        env = {}
+        env['AUTH_PORT'] = str(port)
+        env['ACCT_PORT'] = str(int(port) + 1)
         self.log_location = log_location
         self.wait_time = wait_time
         if debug:
@@ -167,7 +170,7 @@ class FreeRADIUS(Command):
             cmd = ["freeradius", "-f", "-l", "stdout"]
         subprocess.Popen(["systemctl", "stop", "freeradius.service"])
 
-        super().__init__("FreeRADIUS", cmd, self.log_location, self.wait_time)
+        super().__init__("FreeRADIUS", cmd, self.log_location, self.wait_time, env=env)
 
 
 class TCPDump(Command):
