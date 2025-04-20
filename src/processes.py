@@ -24,6 +24,8 @@ class Command:
         if env is not None:
             base_env = os.environ.copy()
             self.env = {**base_env, **env}
+        else:
+            self.env = None
 
         # Create directory for log file if it doesn't exist
         directory = os.path.dirname(log_file)
@@ -34,7 +36,10 @@ class Command:
     def run_subprocess(self):
         # write to log file, append if needed
         with open(self.log_file, "a") as log:
-            self.process = subprocess.Popen(self.command, stdout=log, stderr=log, env=self.env)
+            if self.env:
+                self.process = subprocess.Popen(self.command, stdout=log, stderr=log, env=self.env)
+            else:
+                self.process = subprocess.Popen(self.command, stdout=log, stderr=log)
             self.process.wait()
 
     def start(self):
