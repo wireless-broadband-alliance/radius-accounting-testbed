@@ -162,11 +162,11 @@ class FreeRADIUS(Command):
         log_location,
         wait_time=5,
         debug=False,
-        port=1812,
+        port:int =1812,
     ):
         env = {}
         env['AUTH_PORT'] = str(port)
-        env['ACCT_PORT'] = str(int(port) + 1)
+        env['ACCT_PORT'] = str(port + 1)
         self.log_location = log_location
         self.wait_time = wait_time
         if debug:

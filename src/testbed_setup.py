@@ -213,7 +213,7 @@ class TestSetup:
             ssid=self.config.ssid,
         )
         self.freeradius = procs.FreeRADIUS(
-            log_location=self.freeradius_log, debug=self.debug
+            log_location=self.freeradius_log, debug=self.debug, port=port
         )
 
         self.username = self.wpasupplicant.get_username()
