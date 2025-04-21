@@ -326,6 +326,7 @@ def generate_pcap(test_config: TestConfig, logger: logging.Logger, debug=False):
         downloaded=test_config.download_chunks,
         usage_download=usage_download,
         end_time=end_time,
+        radius_port=test_config.radius_port,
     )
     test_metadata_dict = test_metadata.get_dict()
 
