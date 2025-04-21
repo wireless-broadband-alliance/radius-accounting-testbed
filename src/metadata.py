@@ -23,6 +23,7 @@ class Metadata:
     end_time: datetime
     uploaded: bool
     downloaded: bool
+    radius_port: int
     usage_upload: Union[UsageCounter, None] = None
     usage_download: Union[UsageCounter, None] = None
     _date_format: str = "%Y-%m-%d %H:%M:%S"

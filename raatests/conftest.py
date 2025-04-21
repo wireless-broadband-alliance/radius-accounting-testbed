@@ -333,6 +333,7 @@ def packets(request) -> List[Radius]:
     root_dir = request.config.getoption(ARGNAME_ROOT_DIR)
     metadata = get_metadata(test_name, root_dir)
     username = metadata.username
+    radius_port = metadata.radius_port
     pcap_file = files.get_pcap_filename(test_name, root_dir)
-    pcap = pe.get_relevant_packets(pcap_file, username)
+    pcap = pe.get_relevant_packets(pcap_file, username, radius_port)
     return pcap
