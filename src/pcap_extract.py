@@ -8,8 +8,8 @@ from typing import List, Union
 
 def get_radius_packets(pcap_file: str, radius_port=1812) -> List[Radius]:
     """Find RADIUS packets in a PCAP file and return just the RADIUS layers."""
-    bind_layers(UDP, Radius, dport=radius_port)
-    bind_layers(UDP, Radius, dport=str(int(radius_port)+1))
+    bind_layers(UDP, Radius, dport=int(radius_port))
+    bind_layers(UDP, Radius, dport=int(radius_port)+1)
     radius_packets = []
     # Iterate through the packets to find RADIUS packets with the specified username
     packets = rdpcap(pcap_file)
