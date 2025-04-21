@@ -58,6 +58,7 @@ class Metadata:
             else None,
             "start_time": self.start_time.strftime(self._date_format),
             "end_time": self.end_time.strftime(self._date_format),
+            "radius_port": self.radius_port,
         }
 
     def pretty_print_format(self):
