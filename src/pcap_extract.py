@@ -1,16 +1,15 @@
 """Helpful functions for dealing with RADIUS messages from Scapy PCAP"""
 
 from scapy.all import rdpcap, Radius
-from scapy.layers.radius import RADIUS
 from scapy.layers.inet import UDP
 from scapy.packet import bind_layers
 from typing import List, Union
 
 
-def get_radius_packets(pcap_file: str, radius_port: int = 1812) -> List[Radius]:
+def get_radius_packets(pcap_file: str, radius_port=1812) -> List[Radius]:
     """Find RADIUS packets in a PCAP file and return just the RADIUS layers."""
-    bind_layers(UDP, RADIUS, dport=radius_port)
-    bind_layers(UDP, RADIUS, dport=radius_port+1)
+    bind_layers(UDP, Radius, dport=radius_port)
+    bind_layers(UDP, Radius, dport=str(int(radius_port)+1))
     radius_packets = []
     # Iterate through the packets to find RADIUS packets with the specified username
     packets = rdpcap(pcap_file)
