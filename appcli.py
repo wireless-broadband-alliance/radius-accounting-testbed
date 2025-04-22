@@ -48,7 +48,7 @@ def parse_cliargs():
     parser.add_argument("--debug", action="store_true")
     parser.add_argument(
         f"--{inputs.KEY_DATA_SERVER_LISTEN_PORT}",
-        type=str,
+        type=int,
         default=None,
         help=f"default: {inputs.DATA_SERVER_LISTEN_PORT}",
     )
