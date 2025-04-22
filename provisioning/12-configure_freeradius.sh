@@ -4,6 +4,7 @@ set -eu
 
 fr_base_dir="/etc/freeradius/3.0"
 fr_virt_server_file="$fr_base_dir/sites-available/raa"
+fr_virt_server_file_inner="$fr_base_dir/sites-available/inner-tunnel"
 
 add_line_to_file() {
   line_to_add=$1
@@ -18,6 +19,9 @@ add_line_to_file() {
 
 echo "Removing default virtual server"
 rm -f "$fr_base_dir/sites-enabled/default"
+
+echo "Backing up inner-tunnel"
+cp "$fr_base_dir/sites-available/inner-tunnel" "$fr_base_dir/sites-available/inner-tunnel.orig"
 
 echo "Creating RADIUS Accounting Assurance FreeRADIUS virtual server"
 cat <<_EOF_ | tee "$fr_virt_server_file"
@@ -62,6 +66,34 @@ client any {
   ipaddr = 0.0.0.0/0
   proto = udp
   secret = secret
+}
+_EOF_
+
+echo "Creating RADIUS Accounting Assurance FreeRADIUS inner-tunnel virtual server"
+cat <<_EOF_ | tee "$fr_virt_server_file_inner"
+# raa inner-tunnel config
+server inner-tunnel {
+authorize {
+        suffix
+        update control {
+                &Proxy-To-Realm := LOCAL
+        }
+        eap {
+                ok = return
+        }
+        files
+}
+authenticate {
+        Auth-Type PAP {
+                pap
+        }
+
+        Auth-Type MS-CHAP {
+                mschap
+        }
+
+        eap
+}
 }
 _EOF_
 
