@@ -105,7 +105,7 @@ def parse_cliargs():
     )
     parser.add_argument(
         f"--{inputs.KEY_RADIUS_PORT}",
-        type=str,
+        type=int,
         help=f"RADIUS server auth port, default: {inputs.RADIUS_PORT}",
     )
     parser.add_argument("--no_pcap", action="store_true", help="Skip PCAP generation")
