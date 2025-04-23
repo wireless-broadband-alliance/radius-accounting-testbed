@@ -181,6 +181,8 @@ def create_testconfig(args_from_cli, args_from_config):
 def main():
     #Parse CLI and config file args
     cliargs = vars(parse_cliargs())
+    cliargs[inputs.KEY_DOWNLOAD_CHUNKS] = not cliargs.pop('no_download')
+    cliargs[inputs.KEY_UPLOAD_CHUNKS] = not cliargs.pop('no_upload')
     cliargs["markers"] = change_marker_format(cliargs["markers"])
     configargs = import_config_file(cliargs)
 
