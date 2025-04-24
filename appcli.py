@@ -1,15 +1,15 @@
 """CLI for RADIUS Accounting Assurance Test Bed"""
 
 import argparse
-import src.testbed_setup as ts
+import os
 import logging
+from typing import Union
 import pytest
 import yaml
-import os
+import src.testbed_setup as ts
 from src.metadata import get_metadata
-import src.inputs as inputs
-from typing import Union
-import src.files as files
+from src import inputs
+from src import files
 
 
 def get_possible_markers():
@@ -20,6 +20,7 @@ def get_possible_markers():
 
 
 def parse_cliargs():
+    """Parse command line arguments."""
     markers = get_possible_markers()
     markers_str = ", ".join(markers)
     parser = argparse.ArgumentParser()
@@ -108,49 +109,44 @@ def parse_cliargs():
         type=int,
         help=f"RADIUS server auth port, default: {inputs.RADIUS_PORT}",
     )
-    parser.add_argument("--no_pcap", action="store_true", help="Skip PCAP generation")
+    parser.add_argument("--no_pcap", action="store_true",
+                        help="Skip PCAP generation")
     parser.add_argument(
         "--no_test", action="store_true", help="Skip test case execution"
     )
-    parser.add_argument("--no_upload", action="store_true", help="Do not upload chunks")
+    parser.add_argument("--no_upload", action="store_true",
+                        help="Do not upload chunks")
     parser.add_argument(
         "--no_download", action="store_true", help="Do not download chunks"
     )
     return parser.parse_args()
 
+
 def convert_markers(markers: str) -> list:
     """Convert markers string to list."""
     possible_delims = [",", ";", " "]
-    #convert to list if delim is found
+    # convert to list if delim is found
     for delim in possible_delims:
         if delim in markers:
             break
     markers_tmp = markers.split(delim)
     spaces_removed = [marker.strip() for marker in markers_tmp]
-    #Get rid of empty strings
+    # Get rid of empty strings
     return [marker for marker in spaces_removed if marker]
+
 
 def execute_test_cases(config: ts.TestConfig, logger: logging.Logger):
     """Run tests against PCAP."""
     test_name = config.test_name
     metadata = get_metadata(test_name, config.local_output_directory)
-    logger.info(f'\n\nMetadata for "{test_name}":\n{metadata.pretty_print_format()}\n')
+    logger.info(
+        f'\n\nMetadata for "{test_name}":\n{metadata.pretty_print_format()}\n')
     markers = " or ".join(config.markers)
     pytest_args = ["-v", "raatests", "--test_name", test_name]
     extra_args = ["-m", markers]
     logger.debug(f"\n\npytest args: {pytest_args + extra_args}\n")
     pytest.main(pytest_args + extra_args)
 
-
-def get_input_value(default_value, cliarg=None, configarg=None):
-    """Logic to decide which value to use based on the input."""
-    # Priority: CLI > Config > Default
-    if cliarg is not None:
-        return cliarg
-    elif configarg is not None:
-        return configarg
-    else:
-        return default_value
 
 def change_marker_format(markers: str, delim=",") -> Union[list, None]:
     """Convert markers string to list."""
@@ -161,40 +157,48 @@ def change_marker_format(markers: str, delim=",") -> Union[list, None]:
     new_markers = markers.split(delim)
     return [marker.strip() for marker in new_markers]
 
+
 def import_config_file(cliargs: dict) -> dict:
     """Import config file and return as dict."""
     if not cliargs["config"]:
         configargs = {}
     else:
         config_file = cliargs["config"]
-        with open(config_file, "r") as file:
+        with open(config_file, "r", encoding="utf-8") as file:
             configargs = yaml.safe_load(file)
     return configargs
+
 
 def create_testconfig(args_from_cli, args_from_config):
     """Create TestConfig object"""
     test_name = args_from_cli["test_name"]
     data_server_ip = args_from_cli["data_server_ip"]
     data_server_port = args_from_cli["data_server_port"]
-    return ts.get_testconfig(test_name, data_server_ip, data_server_port, args_from_cli, args_from_config)
+    return ts.get_testconfig(test_name, 
+                             data_server_ip, 
+                             data_server_port, 
+                             args_from_cli, 
+                             args_from_config)
+
 
 def main():
-    #Parse CLI and config file args
+    """Main function to run the CLI."""
+    # Parse CLI and config file args
     cliargs = vars(parse_cliargs())
     cliargs[inputs.KEY_DOWNLOAD_CHUNKS] = not cliargs.pop('no_download')
     cliargs[inputs.KEY_UPLOAD_CHUNKS] = not cliargs.pop('no_upload')
     cliargs["markers"] = change_marker_format(cliargs["markers"])
     configargs = import_config_file(cliargs)
 
-    #Set up logging
+    # Set up logging
     logger = logging.getLogger(__name__)
     ts.setup_logging(cliargs["debug"])
 
-    #Create TestConfig object from CLI + config args
+    # Create TestConfig object from CLI + config args
     config = create_testconfig(cliargs, configargs)
 
     # Create directories
-    logger.info(f"Creating subdirectories in {config.local_output_directory}")
+    logger.info("Creating subdirectories in %s", config.local_output_directory)
     files.init_dirs(config.local_output_directory)
     config.write_yaml()
 
