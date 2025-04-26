@@ -1,9 +1,9 @@
 """Helpful functions for dealing with RADIUS messages from Scapy PCAP"""
 
+from typing import List, Union
 from scapy.all import rdpcap, Radius
 from scapy.layers.inet import UDP
 from scapy.packet import bind_layers
-from typing import List, Union
 
 
 def get_radius_packets(pcap_file: str, radius_port=1812) -> List[Radius]:
@@ -144,8 +144,7 @@ def get_acct_output_gigawords(packet: Radius) -> list:
 def __check_for_one_value(attribute_list: list, attribute_name: str):
     """Check that there is only one in attribute list."""
     if len(attribute_list) != 1:
-        # TODO: Different exception types?
-        raise Exception(f"Attribute {attribute_name} should have one value")
+        raise ValueError(f"Attribute {attribute_name} should have one value")
 
 
 def get_total_output_octets(packet: Radius) -> int:
