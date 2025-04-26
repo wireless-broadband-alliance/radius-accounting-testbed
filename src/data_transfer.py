@@ -3,10 +3,10 @@
 import socket
 import logging
 import threading
-import netifaces
 import time
-import psutil
 from dataclasses import dataclass
+import netifaces
+import psutil
 
 
 @dataclass
@@ -20,6 +20,7 @@ class UsageCounter:
     interface: int
 
     def to_dict(self):
+        """Convert the UsageCounter object to a dictionary for easier interpretation."""
         return {
             "packets_sent": self.packets_sent,
             "packets_recv": self.packets_recv,
@@ -28,7 +29,8 @@ class UsageCounter:
             "interface": self.interface,
         }
 
-    def subtract(self, other):
+    def __sub__(self, other):
+        """Subtract another UsageCounter object from this one."""
         return UsageCounter(
             self.packets_sent - other.packets_sent,
             self.packets_recv - other.packets_recv,
@@ -42,13 +44,14 @@ class UsageCounter:
 
 
 def get_interface_ip(interface_name):
+    """Get the IP address of a network interface."""
     try:
         # Get the IP address for the specified network interface
         addresses = netifaces.ifaddresses(interface_name)
         ipv4_address = addresses[netifaces.AF_INET][0]["addr"]
         return ipv4_address
     except (KeyError, ValueError) as e:
-        logging.error(f"Error: {e}")
+        logging.error("Error: %s", e)
         raise e
 
 
@@ -72,17 +75,20 @@ class TCPServer:
         self.chunks = chunks
         self.server_thread = None
         self.ready_for_conns = threading.Event()
+        self.download = None
 
     def __tcp_server(self, download=True):
-        """Server that listens for incoming connections and sends or receives random data to clients."""
+        """Server that listens for incoming connections and sends or receives 
+        random data to clients."""
         mode = "download" if download else "upload"
-        logging.info(f"Starting TCP data server (mode={mode})...")
+        logging.info("Starting TCP data server (mode=%s)...", mode)
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
+            server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             try:
                 server.bind(("0.0.0.0", self.listen_port))
             except OSError as e:
                 logging.debug(
-                    f"Not ready to bind: {e}, sleeping for 120 seconds and retrying"
+                    "Not ready to bind: %s, sleeping for 120 seconds and retrying", e
                 )
                 time.sleep(120)
                 server.bind(("0.0.0.0", self.listen_port))
@@ -91,7 +97,7 @@ class TCPServer:
             self.ready_for_conns.set()
 
             client_sock, client_addr = server.accept()
-            logging.debug(f"Client connected from {client_addr}")
+            logging.debug("Client connected from %s", client_addr)
 
             with client_sock:
                 if download:
@@ -116,9 +122,11 @@ class TCPServer:
     def start(self, download=True):
         """Start the TCP server in upload or download mode."""
         if download:
+            #Download mode
             self.download = True
             thread = threading.Thread(target=self.tcp_server_download)
         else:
+            #Upload mode
             self.download = False
             thread = threading.Thread(target=self.tcp_server_upload)
         thread.start()
@@ -132,13 +140,13 @@ class TCPServer:
         iface = self.client_iface
         if iface:
             source_ip = get_interface_ip(iface)
-            logging.debug(f"Binding to interface {iface} with IP {source_ip}")
+            logging.debug("Binding to interface %s with IP %s", iface, source_ip)
             client_socket.setsockopt(socket.SOL_SOCKET, 25, iface.encode())
             client_socket.bind((source_ip, 0))
         try:
             client_socket.connect((self.dst_host, self.dst_port))
-        except Exception as e:
-            logging.error(f"Error: {e}")
+        except socket.gaierror as e:
+            logging.error("Error: %s", e)
         return client_socket
 
     def __tx_data_chunks(self, logger, sock, verb=None):
@@ -147,17 +155,21 @@ class TCPServer:
         with open(file_path, "rb") as file:
             data = file.read(self.chunk_size)
         usage_start = get_usage_data(self.client_iface)
-        for chunk_num in range(self.chunks):
+        count = 0
+        while True:
+            count += 1
             try:
                 sock.sendall(data)
             except BrokenPipeError:
                 break
             except ConnectionResetError:
                 break
-            if verb:
-                cur_usage = get_usage_data(self.client_iface).subtract(usage_start)
-                logger.info(f"Iface {cur_usage.interface}: {cur_usage.bytes_sent}")
-                logger.info(f"{verb} data chunk {chunk_num + 1}")
+            cur_usage = get_usage_data(self.client_iface) - usage_start
+            if cur_usage.bytes_sent >= self.chunk_size * self.chunks:
+                if verb:
+                    logger.info(f"Iface {cur_usage.interface}: {cur_usage.bytes_sent}")
+                    logger.info(f"{verb} data chunk {count + 1}")
+                break
 
     def __rx_data_chunks(self, logger, sock, verb=None):
         """Behavior for one side to receive data chunks from other side."""
@@ -208,8 +220,7 @@ class TCPServer:
         else:
             self.__upload_data_chunks(logger)
         time.sleep(1)
-        usage_after = get_usage_data(network_interface)
-        return usage_after.subtract(usage_before)
+        return get_usage_data(network_interface) - usage_before
 
 
 def get_usage_data(client_iface):
