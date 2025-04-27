@@ -1,14 +1,19 @@
-import src.pcap_extract as pe
-from scapy.all import Radius
+"""OpenRoaming tests (Proof of Concept)."""
+
 from typing import List
 import re
 import pytest
+from scapy.all import Radius
+import src.pcap_extract as pe
 
 
 class TestOpenroamAttributes:
+    """Test OpenRoaming-related RADIUS attributes in RADIUS packets."""
+
     @pytest.mark.openroaming
     def test_operator_name_format(self, packets: List[Radius]):
         """Go through each packet and check if Operator-Name is present"""
+
         # https://datatracker.ietf.org/doc/draft-tomas-openroaming/ section 8.1
         not_present_counter = 0
         for packet in packets:
@@ -25,4 +30,4 @@ class TestOpenroamAttributes:
             print(
                 f"Operator-Name not in {not_present_counter} of {len(packets)} packets."
             )
-            raise Exception("Operator-Name not present in all packets.")
+            raise ValueError("Operator-Name not present in all packets.")

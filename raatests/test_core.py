@@ -1,11 +1,14 @@
-import src.pcap_extract as pe
-from scapy.all import Radius
+"""RADIUS Accounting Assurance core tests"""
+
 from typing import List, Callable, Tuple
 import logging
 import pytest
+import src.pcap_extract as pe
+from scapy.all import Radius
 
 
 class TestAttributeChecks:
+    """Basic accounting RADIUS tests"""
     @pytest.mark.core
     def test_unique_persistent_acct_session_id(self, packets):
         """Unique and persistent Acct-Session-Id in accounting sessions."""
@@ -150,6 +153,7 @@ class TestAttributeChecks:
 
 
 class TestAccuracyChecks:
+    """Compare data reported through RADIUS vs what was actually transferred."""
     def __get_stop_or_update_packets(self, packets: List[Radius]) -> Radius:
         """Return Stop packet or latest Interim-Update+error."""
         try:
