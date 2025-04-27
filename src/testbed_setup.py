@@ -1,14 +1,14 @@
 """Contains test setup-related imports."""
 
+from datetime import datetime
+from typing import List
+from dataclasses import dataclass
 import time
 import os
 import logging
 import subprocess
-import yaml
 import json
-from datetime import datetime
-from typing import List
-from dataclasses import dataclass
+import yaml
 
 import src.processes as procs
 import src.files as files
@@ -69,8 +69,8 @@ class TestConfig:
     def write_yaml(self):
         """Write test configuration to a YAML file"""
         config = files.get_config_filename(self.test_name, self.local_output_directory)
-        logging.info(f"Writing test configuration to {config}")
-        with open(config, "w") as file:
+        logging.info("Writing test configuration to %s", config)
+        with open(config, "w", encoding='utf-8') as file:
             yaml.dump(self.__to_dict__(), file)
 
 def get_possible_markers():
@@ -116,7 +116,7 @@ def get_testconfig(test_name: str,
 
 def read_config_file(filename: str) -> TestConfig:
     """Read test configuration from a YAML file"""
-    with open(filename, "r") as file:
+    with open(filename, "r", encoding='utf-8') as file:
         config = yaml.safe_load(file)
     return TestConfig(**config)
 
@@ -148,7 +148,7 @@ class TestSetup:
         self.root_dir = self.config.local_output_directory
         self.__create_dirs()
         self.__initialize_proc_vars()
-        logging.debug(f"Test configuration: {self.config.pretty_print()}")
+        logging.debug("Test configuration: %s", self.config.pretty_print)
 
     def __create_dirs(self):
         """Create subdirectories for logs, pcap, configs, and reports"""
@@ -200,12 +200,12 @@ class TestSetup:
         """Initialize process objects for the test"""
         self.__initialize_output_locations()
         port = int(self.config.radius_port)
-        filter = f"port {port} or port {port + 1}"
+        _filter = f"port {port} or port {port + 1}"
         self.radius_tcpdump = procs.TCPDump(
             interface=self.config.server_interface,
             pcap_location=self.radius_pcap_location,
             log_location=self.radius_tcpdump_log,
-            filter=filter,
+            _filter=_filter,
         )
         self.wpasupplicant = procs.WpaSupplicant(
             interface=self.config.client_interface,
@@ -331,7 +331,7 @@ def generate_pcap(test_config: TestConfig, logger: logging.Logger, debug=False):
     test_metadata_dict = test_metadata.get_dict()
 
     logger.info(f'Writing metadata to file "{filename_withdir}"')
-    with open(filename_withdir, "w") as f:
+    with open(filename_withdir, "w", encoding='utf-8') as f:
         json.dump(test_metadata_dict, f)
     logger.info(f"Test {test_config.test_name} completed")
 
