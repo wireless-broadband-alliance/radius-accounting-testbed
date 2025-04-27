@@ -165,32 +165,32 @@ class TCPServer:
             except ConnectionResetError:
                 break
             cur_usage = get_usage_data(self.client_iface) - usage_start
-            if cur_usage.bytes_sent >= self.chunk_size * self.chunks:
-                if verb:
-                    logger.info(f"Iface {cur_usage.interface}: {cur_usage.bytes_sent}")
-                    logger.info(f"{verb} data chunk {count + 1}")
-                break
+            if verb:
+                logger.info(f"Iface {cur_usage.interface}: {cur_usage.bytes_sent}")
+                logger.info(f"{verb} data chunk {count + 1}")
 
     def __rx_data_chunks(self, logger, sock, verb=None):
         """Behavior for one side to receive data chunks from other side."""
-        expected_download_bytes = self.chunks * self.chunk_size
+        expected_bytes = self.chunks * self.chunk_size
         count = 0
         byte_count = 0
         while True:
             try:
                 actual_len = len(sock.recv(self.chunk_size))
-                if actual_len != 0:
-                    count += 1
-                    byte_count += actual_len
-                    if verb:
-                        logger.info(
-                            f"{verb} chunk {count} of size {actual_len}, total bytes: {byte_count} of {expected_download_bytes}"
-                        )
-                else:
-                    break
             except BrokenPipeError:
                 break
             except ConnectionResetError:
+                break
+            if actual_len != 0:
+                count += 1
+                byte_count += actual_len
+                if verb:
+                    logger.info(
+                        f"{verb} chunk {count} of size {actual_len}, total bytes: {byte_count} of {expected_bytes}"
+                    )
+                if byte_count >= expected_bytes:
+                    break
+            else:
                 break
 
     def __download_data_chunks(self, logger):
