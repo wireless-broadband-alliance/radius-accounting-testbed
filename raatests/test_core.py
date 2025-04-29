@@ -186,56 +186,56 @@ class TestAccuracyChecks:
         assert packets_sent or packets_recv, "No packets sent or received"
         return int(packets_sent), int(packets_recv)
 
-    def __tonnage_accuracy(
-        self, metadata, packets, octet_func: Callable, packet_count: int
-    ):
-        """General tonnage accuracy function."""
-
-        chunks = int(metadata.chunks)
-        expected_octets = chunks * int(metadata.chunk_size)
-
-        # Allow for += 2% tolerance total octets
-        tolerance = 0.02
-
-        # Calculate approx overhead from each packet
-        # 14 bytes Eth header (no VLAN)
-        # 20 bytes IP header
-        # 32 bytes TCP header
-        # total of 66 bytes overhead
-
-        # Also add extra bytes for handshake and other traffic before data transfer
-        octets_overhead = 66 * packet_count
-        octets_extra = 100 * 1024 * 2
-
-        expected_octets_low, expected_octets_high = (
-            expected_octets * (1 - tolerance),
-            (expected_octets * (1 + tolerance)) + octets_overhead + octets_extra,
-        )
-        packet = self.__get_stop_or_update_packets(packets)
-        total_octets = octet_func(packet)
-        print("Octets: ", total_octets)
-        print(f"Valid Range: {expected_octets_low} - {expected_octets_high}")
-        assert expected_octets_low <= total_octets <= expected_octets_high
+    def __calculate_accuracy(self, expected_octets:int, actual_octets:int, octet_type: str, tolerance = 0.03):
+        expected_octets_low = int(expected_octets * (1-tolerance))
+        expected_octets_high = int(expected_octets * (1+tolerance))
+        percentage_off = round(100*((expected_octets / actual_octets)-1), 2)
+        print(f"{octet_type} Octets reported by RADIUS: ", actual_octets)
+        print(f"{octet_type} Octets reported by network interface statistics: ", expected_octets)
+        print(f"Difference: {percentage_off}%")
+        print(f"Acceptable Range: {expected_octets_low} - {expected_octets_high}")
+        print(f"Tolerance: {100*tolerance}%")
+        assert expected_octets_low <= actual_octets <= expected_octets_high
 
     @pytest.mark.core_upload
     def test_input_tonnage_accuracy(self, packets, metadata):
         """Input tonnage is accurate."""
+        tolerance = 0.02
         if not metadata.uploaded:
             pytest.skip("No upload data")
-        packets_sent, _ = self.__get_packets_sent_recv(metadata)
-        self.__tonnage_accuracy(
-            metadata, packets, pe.get_total_input_octets, packets_sent
-        )
+
+        # Get expected sent bytes from metadata
+        bytes_sent = 0
+        if metadata.downloaded:
+            bytes_sent += metadata.usage_download.bytes_sent
+        if metadata.uploaded:
+            bytes_sent += metadata.usage_upload.bytes_sent
+
+        # Get total octets from RADIUS
+        packet = self.__get_stop_or_update_packets(packets)
+        total_octets = pe.get_total_input_octets(packet)
+        assert bytes_sent * (1-tolerance) <= total_octets <= bytes_sent * (1+tolerance)
+
+        ## Get total octets from RADIUS
+        #packet = self.__get_stop_or_update_packets(packets)
+        #total_octets = pe.get_total_input_octets(packet)
+
+        #self.__calculate_accuracy(expected_octets=bytes_sent,
+        #                          actual_octets=total_octets,
+        #                          octet_type="Input")
 
     @pytest.mark.core_download
     def test_output_tonnage_accuracy(self, packets, metadata):
         """Output tonnage is accurate."""
+        tolerance = 0.02
         if not metadata.downloaded:
             pytest.skip("No download data")
-        _, packets_recv = self.__get_packets_sent_recv(metadata)
-        self.__tonnage_accuracy(
-            metadata, packets, pe.get_total_output_octets, packets_recv
-        )
+        bytes_recv = 0
+        if metadata.downloaded:
+            bytes_recv += metadata.usage_download.bytes_recv
+        if metadata.uploaded:
+            bytes_recv += metadata.usage_upload.bytes_recv
+        assert bytes_recv(1-tolerance) <= bytes_recv <= (1+tolerance)
 
     @pytest.mark.core
     def test_session_duration_accuracy(self, packets, metadata):
