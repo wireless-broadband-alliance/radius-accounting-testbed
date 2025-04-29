@@ -54,6 +54,11 @@ def get_interface_ip(interface_name):
         logging.error("Error: %s", e)
         raise e
 
+def print_progress_bool(expected_bytes, count) -> bool:
+    """Print progress of data transfer if expected_bytes is greater than 1000000."""
+    if expected_bytes > 1000000 and count % 1000 != 0:
+        return False 
+    return True 
 
 class TCPServer:
     """Server that listens for incoming connections and sends random data to clients."""
@@ -156,6 +161,7 @@ class TCPServer:
             data = file.read(self.chunk_size)
         usage_start = get_usage_data(self.client_iface)
         count = 0
+        expected_bytes = self.chunks * self.chunk_size
         while True:
             count += 1
             try:
@@ -165,7 +171,7 @@ class TCPServer:
             except ConnectionResetError:
                 break
             cur_usage = get_usage_data(self.client_iface) - usage_start
-            if verb:
+            if verb and (print_progress_bool(expected_bytes, count)):
                 logger.info(f"Iface {cur_usage.interface}: {cur_usage.bytes_sent}")
                 logger.info(f"{verb} data chunk {count + 1}")
 
@@ -185,7 +191,7 @@ class TCPServer:
             if actual_len != 0:
                 count += 1
                 byte_count += actual_len
-                if verb:
+                if verb and print_progress_bool(expected_bytes, count):
                     logger.info(
                         f"{verb} chunk {count} of size {actual_len}, total bytes: {byte_count} of {expected_bytes}"
                     )
