@@ -55,8 +55,8 @@ def get_interface_ip(interface_name):
         raise e
 
 def print_progress_bool(expected_bytes, count) -> bool:
-    """Print progress of data transfer if expected_bytes is greater than 1000000."""
-    if expected_bytes > 1000000 and count % 1000 != 0:
+    """Print progress of data transfer if expected_bytes is greater than 1000000000."""
+    if expected_bytes > 1e9 and count % 1000 != 0:
         return False 
     return True 
 
