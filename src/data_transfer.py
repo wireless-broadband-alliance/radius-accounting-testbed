@@ -176,7 +176,8 @@ class TCPServer:
         byte_count = 0
         while True:
             try:
-                actual_len = len(sock.recv(self.chunk_size))
+                bytes_to_pull = min(expected_bytes - byte_count, self.chunk_size)
+                actual_len = len(sock.recv(bytes_to_pull))
             except BrokenPipeError:
                 break
             except ConnectionResetError:
