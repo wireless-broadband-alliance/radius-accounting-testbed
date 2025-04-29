@@ -187,6 +187,7 @@ class TestAccuracyChecks:
         return int(packets_sent), int(packets_recv)
 
     def __calculate_accuracy(self, expected_octets:int, actual_octets:int, octet_type: str, tolerance = 0.03):
+        """Rules for pass/fail for tonnage accuracy checks"""
         expected_octets_low = int(expected_octets * (1-tolerance))
         expected_octets_high = int(expected_octets * (1+tolerance))
         percentage_off = round(100*((expected_octets / actual_octets)-1), 2)
@@ -200,42 +201,45 @@ class TestAccuracyChecks:
     @pytest.mark.core_upload
     def test_input_tonnage_accuracy(self, packets, metadata):
         """Input tonnage is accurate."""
-        tolerance = 0.02
         if not metadata.uploaded:
             pytest.skip("No upload data")
 
-        # Get expected sent bytes from metadata
+        # Get expected octets from network interface packet counters
         bytes_sent = 0
         if metadata.downloaded:
             bytes_sent += metadata.usage_download.bytes_sent
         if metadata.uploaded:
             bytes_sent += metadata.usage_upload.bytes_sent
 
-        # Get total octets from RADIUS
+        # Get actual octets from RADIUS
         packet = self.__get_stop_or_update_packets(packets)
         total_octets = pe.get_total_input_octets(packet)
-        assert bytes_sent * (1-tolerance) <= total_octets <= bytes_sent * (1+tolerance)
 
-        ## Get total octets from RADIUS
-        #packet = self.__get_stop_or_update_packets(packets)
-        #total_octets = pe.get_total_input_octets(packet)
-
-        #self.__calculate_accuracy(expected_octets=bytes_sent,
-        #                          actual_octets=total_octets,
-        #                          octet_type="Input")
+        # Calculate accuracy
+        self.__calculate_accuracy(expected_octets=bytes_sent,
+                                  actual_octets=total_octets,
+                                  octet_type="Input")
 
     @pytest.mark.core_download
     def test_output_tonnage_accuracy(self, packets, metadata):
         """Output tonnage is accurate."""
-        tolerance = 0.02
         if not metadata.downloaded:
             pytest.skip("No download data")
+
+        # Get expected octets from network interface packet counters
         bytes_recv = 0
         if metadata.downloaded:
             bytes_recv += metadata.usage_download.bytes_recv
         if metadata.uploaded:
             bytes_recv += metadata.usage_upload.bytes_recv
-        assert bytes_recv(1-tolerance) <= bytes_recv <= (1+tolerance)
+
+        # Get expected octets from RADIUS
+        packet = self.__get_stop_or_update_packets(packets)
+        total_octets = pe.get_total_output_octets(packet)
+        self.__calculate_accuracy(expected_octets=bytes_recv,
+                                  actual_octets=total_octets,
+                                  octet_type="Output")
+
 
     @pytest.mark.core
     def test_session_duration_accuracy(self, packets, metadata):
