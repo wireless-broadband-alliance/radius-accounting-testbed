@@ -5,11 +5,16 @@ from scapy.all import rdpcap, Radius
 from scapy.layers.inet import UDP
 from scapy.packet import bind_layers
 
+def bind_layers_all(radius_port: int):
+    """Bind possibly non-standard port to RADIUS."""
+    bind_layers(UDP, Radius, dport=int(radius_port))
+    bind_layers(UDP, Radius, dport=int(radius_port)+1)
+    bind_layers(UDP, Radius, sport=int(radius_port))
+    bind_layers(UDP, Radius, sport=int(radius_port)+1)
 
 def get_radius_packets(pcap_file: str, radius_port=1812) -> List[Radius]:
     """Find RADIUS packets in a PCAP file and return just the RADIUS layers."""
-    bind_layers(UDP, Radius, dport=int(radius_port))
-    bind_layers(UDP, Radius, dport=int(radius_port)+1)
+    bind_layers_all(radius_port)
     radius_packets = []
     # Iterate through the packets to find RADIUS packets with the specified username
     packets = rdpcap(pcap_file)
