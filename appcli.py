@@ -180,14 +180,21 @@ def create_testconfig(args_from_cli, args_from_config):
                              args_from_cli, 
                              args_from_config)
 
+def fix_cliargs(cliargs: dict) -> dict:
+    """Fix CLI arguments to match TestConfig requirements."""
+    cliargs[inputs.KEY_DOWNLOAD_CHUNKS] = not cliargs.pop('no_download')
+    cliargs[inputs.KEY_UPLOAD_CHUNKS] = not cliargs.pop('no_upload')
+    cliargs[inputs.KEY_GENERATE_PCAP] = not cliargs.pop('no_pcap')
+    cliargs[inputs.KEY_GENERATE_REPORT] = not cliargs.pop('no_test')
+    if cliargs["markers"] is not None:
+        cliargs["markers"] = change_marker_format(cliargs["markers"])
+    return cliargs
 
 def main():
     """Main function to run the CLI."""
     # Parse CLI and config file args
-    cliargs = vars(parse_cliargs())
-    cliargs[inputs.KEY_DOWNLOAD_CHUNKS] = not cliargs.pop('no_download')
-    cliargs[inputs.KEY_UPLOAD_CHUNKS] = not cliargs.pop('no_upload')
-    cliargs["markers"] = change_marker_format(cliargs["markers"])
+    cliargs_orig = vars(parse_cliargs())
+    cliargs = fix_cliargs(cliargs_orig)
     configargs = import_config_file(cliargs)
 
     # Set up logging
@@ -203,11 +210,11 @@ def main():
     config.write_yaml()
 
     # Generate PCAP if enabled.
-    if not cliargs['no_pcap']:
+    if config.generate_pcap:
         ts.generate_pcap(config, logger, cliargs["debug"])
 
     # Execute tests if enabled.
-    if not cliargs['no_test']:
+    if config.generate_report:
         execute_test_cases(config, logger)
 
 
