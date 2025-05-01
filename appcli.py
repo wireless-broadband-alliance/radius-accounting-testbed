@@ -203,11 +203,11 @@ def main():
     config.write_yaml()
 
     # Generate PCAP if enabled.
-    if config.generate_pcap:
+    if not cliargs['no_pcap']:
         ts.generate_pcap(config, logger, cliargs["debug"])
 
     # Execute tests if enabled.
-    if config.generate_report:
+    if not cliargs['no_test']:
         execute_test_cases(config, logger)
 
 
