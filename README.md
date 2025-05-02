@@ -273,10 +273,12 @@ python3 appcli.py --help
 There are several options available to the user. The following is the help output:
 
 ```bash
-usage: appcli.py [-h] [--config CONFIG] [--markers MARKERS] [--debug] [--data_server_listen_port DATA_SERVER_LISTEN_PORT]
-                 [--local_output_dir LOCAL_OUTPUT_DIR] [--chunk_size CHUNK_SIZE] [--chunks CHUNKS] [--ssid SSID] [--sut_software SUT_SOFTWARE]
-                 [--sut_brand SUT_BRAND] [--sut_hardware SUT_HARDWARE] [--client_iface CLIENT_IFACE] [--server_iface SERVER_IFACE] [--no_pcap]
-                 [--no_test] [--no_upload] [--no_download]
+usage: appcli.py [-h] [--config CONFIG] [--markers MARKERS] [--debug]
+                 [--data_server_listen_port DATA_SERVER_LISTEN_PORT] [--local_output_dir LOCAL_OUTPUT_DIR]
+                 [--chunk_size CHUNK_SIZE] [--chunks CHUNKS] [--ssid SSID] [--sut_software SUT_SOFTWARE]
+                 [--sut_brand SUT_BRAND] [--sut_hardware SUT_HARDWARE] [--client_iface CLIENT_IFACE]
+                 [--server_iface SERVER_IFACE] [--radius_port RADIUS_PORT] [--no_pcap] [--no_test] [--no_upload]
+                 [--no_download]
                  test_name data_server_ip data_server_port
 
 positional arguments:
@@ -307,6 +309,8 @@ options:
                         default: wlan0
   --server_iface SERVER_IFACE
                         default: eth0
+  --radius_port RADIUS_PORT
+                        RADIUS server auth port, default: 1812
   --no_pcap             Skip PCAP generation
   --no_test             Skip test case execution
   --no_upload           Do not upload chunks
