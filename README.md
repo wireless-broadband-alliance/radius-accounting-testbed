@@ -95,6 +95,44 @@ python appcli.py test <data_server_ip> <data_server_port>
 
 Where `data_server_ip` and `data_server_port` are the IP and port to forward traffic through the AP network (System Under Test) to the data server on the Pi.
 
+
+#### CLI Tests Templates:
+
+The following templates require:
+1. `TEST_NAME`: Name of test for identification
+2. `DATA_SERVER_IP`: IP of data server to pull data from.
+3. `DATA_SERVER_PORT`: Port of data server to pull data from. Forward this to the Pi.
+4. `CLIENT_IFACE`: WLAN interface of client (default wlan0).
+5. `SSID`: System under test network name / SSID to connect to.
+
+- Using `<CLIENT_IFACE>`, connect to SSID `<SSID>` and download 100 MB.
+  ```bash
+  python appcli.py \
+  <TEST_NAME> <DATA_SERVER_IP> <DATA_SERVER_PORT> \
+  --ssid <SSID>
+  --markers core,core_download \
+  --client_iface <CLIENT_IFACE> \
+  --chunks 100 \
+  --chunk_size 1000000 \
+  --data_server_listen_port 8000 \
+  --radius_port 1812 \
+  --no_upload
+  ```
+
+- Using `<CLIENT_IFACE>`, connect to SSID `<SSID>` and download 5 GB then upload 5 GB.
+  ```bash
+  python appcli.py \
+  <TEST_NAME> <DATA_SERVER_IP> <DATA_SERVER_PORT> \
+  --ssid <SSID>
+  --debug \
+  --markers core,core_upload,core_download \
+  --client_iface <CLIENT_IFACE> \
+  --chunks 1000 \
+  --chunk_size 5000000 \
+  --data_server_listen_port 8000 \
+  --radius_port 1812
+  ```
+
 ## System Under Test (SUT)
 
 ### Introduction
