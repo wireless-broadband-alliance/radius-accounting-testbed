@@ -5,6 +5,7 @@ from typing import List
 from dataclasses import dataclass
 import time
 import os
+import sys
 import logging
 import subprocess
 import json
@@ -135,6 +136,21 @@ def create_dir_if_not_exists(directory):
         logging.info(f"Creating directory {directory}")
         os.makedirs(directory)
 
+#check if interfaces exist
+def check_interfaces_exist(self, *args):
+    """Check if the specified network interfaces exist"""
+    for iface in args:
+        try:
+            subprocess.run(
+                ["ip", "link", "show", iface],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+        except subprocess.CalledProcessError:
+            self.logger.error(f"Interface {iface} does not exist.")
+            return False
+    return True
 
 class TestSetup:
     """Class that contains common methods and attributes for all tests."""
@@ -149,6 +165,8 @@ class TestSetup:
         self.__create_dirs()
         self.__initialize_proc_vars()
         logging.debug("Test configuration: %s", self.config.pretty_print)
+        if not check_interfaces_exist(self, self.config.client_interface, self.config.server_interface):
+            sys.exit()
 
     def __create_dirs(self):
         """Create subdirectories for logs, pcap, configs, and reports"""
