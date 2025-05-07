@@ -8,7 +8,7 @@ CHUNK_SIZE = 1000
 CHUNKS = 1000
 CLIENT_IFACE = "lo"
 SLEEP_TIME = 10
-TEST_TOLERANCE = 0.10
+TEST_TOLERANCE = 0.05
 
 
 @pytest.fixture(scope="module", autouse=True)
