@@ -1,15 +1,23 @@
 """Helpful functions for dealing with RADIUS messages from Scapy PCAP"""
 
-from scapy.all import rdpcap, Radius
 from typing import List, Union
+from scapy.all import rdpcap, Radius
+from scapy.layers.inet import UDP
+from scapy.packet import bind_layers
 
+def bind_layers_all(radius_port: int):
+    """Bind possibly non-standard port to RADIUS."""
+    bind_layers(UDP, Radius, dport=int(radius_port))
+    bind_layers(UDP, Radius, dport=int(radius_port)+1)
+    bind_layers(UDP, Radius, sport=int(radius_port))
+    bind_layers(UDP, Radius, sport=int(radius_port)+1)
 
-def get_radius_packets(pcap_file: str) -> List[Radius]:
+def get_radius_packets(pcap_file: str, radius_port=1812) -> List[Radius]:
     """Find RADIUS packets in a PCAP file and return just the RADIUS layers."""
+    bind_layers_all(radius_port)
     radius_packets = []
     # Iterate through the packets to find RADIUS packets with the specified username
     packets = rdpcap(pcap_file)
-    # embed()
     for packet in packets:
         # Look for RADIUS packets.
         if packet.haslayer(Radius):
@@ -44,9 +52,11 @@ def get_packets_by_username(packets: List[Radius], username: str) -> List[Radius
     return __filter_packets(packets, 1, username_bytes)
 
 
-def get_relevant_packets(pcap: str, username: str) -> List[Radius]:
+def get_relevant_packets(pcap: str, 
+                         username: str, 
+                         radius_port: int = 1812) -> List[Radius]:
     """Read PCAP and just return packets we are interested in."""
-    all_radius_packets = get_radius_packets(pcap)
+    all_radius_packets = get_radius_packets(pcap, radius_port)
     return get_packets_by_username(packets=all_radius_packets, username=username)
 
 
@@ -139,8 +149,7 @@ def get_acct_output_gigawords(packet: Radius) -> list:
 def __check_for_one_value(attribute_list: list, attribute_name: str):
     """Check that there is only one in attribute list."""
     if len(attribute_list) != 1:
-        # TODO: Different exception types?
-        raise Exception(f"Attribute {attribute_name} should have one value")
+        raise ValueError(f"Attribute {attribute_name} should have one value")
 
 
 def get_total_output_octets(packet: Radius) -> int:

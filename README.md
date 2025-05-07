@@ -95,6 +95,44 @@ python appcli.py test <data_server_ip> <data_server_port>
 
 Where `data_server_ip` and `data_server_port` are the IP and port to forward traffic through the AP network (System Under Test) to the data server on the Pi.
 
+
+#### CLI Tests Templates:
+
+The following templates require:
+1. `TEST_NAME`: Name of test for identification
+2. `DATA_SERVER_IP`: IP of data server to pull data from.
+3. `DATA_SERVER_PORT`: Port of data server to pull data from. Forward this to the Pi.
+4. `CLIENT_IFACE`: WLAN interface of client (default wlan0).
+5. `SSID`: System under test network name / SSID to connect to.
+
+- Using `<CLIENT_IFACE>`, connect to SSID `<SSID>` and download 100 MB.
+  ```bash
+  python appcli.py \
+  <TEST_NAME> <DATA_SERVER_IP> <DATA_SERVER_PORT> \
+  --ssid <SSID>
+  --markers core,core_download \
+  --client_iface <CLIENT_IFACE> \
+  --chunks 100 \
+  --chunk_size 1000000 \
+  --data_server_listen_port 8000 \
+  --radius_port 1812 \
+  --no_upload
+  ```
+
+- Using `<CLIENT_IFACE>`, connect to SSID `<SSID>` and download 5 GB then upload 5 GB.
+  ```bash
+  python appcli.py \
+  <TEST_NAME> <DATA_SERVER_IP> <DATA_SERVER_PORT> \
+  --ssid <SSID>
+  --debug \
+  --markers core,core_upload,core_download \
+  --client_iface <CLIENT_IFACE> \
+  --chunks 1000 \
+  --chunk_size 5000000 \
+  --data_server_listen_port 8000 \
+  --radius_port 1812
+  ```
+
 ## System Under Test (SUT)
 
 ### Introduction
@@ -235,10 +273,12 @@ python3 appcli.py --help
 There are several options available to the user. The following is the help output:
 
 ```bash
-usage: appcli.py [-h] [--config CONFIG] [--markers MARKERS] [--debug] [--data_server_listen_port DATA_SERVER_LISTEN_PORT]
-                 [--local_output_dir LOCAL_OUTPUT_DIR] [--chunk_size CHUNK_SIZE] [--chunks CHUNKS] [--ssid SSID] [--sut_software SUT_SOFTWARE]
-                 [--sut_brand SUT_BRAND] [--sut_hardware SUT_HARDWARE] [--client_iface CLIENT_IFACE] [--server_iface SERVER_IFACE] [--no_pcap]
-                 [--no_test] [--no_upload] [--no_download]
+usage: appcli.py [-h] [--config CONFIG] [--markers MARKERS] [--debug]
+                 [--data_server_listen_port DATA_SERVER_LISTEN_PORT] [--local_output_dir LOCAL_OUTPUT_DIR]
+                 [--chunk_size CHUNK_SIZE] [--chunks CHUNKS] [--ssid SSID] [--sut_software SUT_SOFTWARE]
+                 [--sut_brand SUT_BRAND] [--sut_hardware SUT_HARDWARE] [--client_iface CLIENT_IFACE]
+                 [--server_iface SERVER_IFACE] [--radius_port RADIUS_PORT] [--no_pcap] [--no_test] [--no_upload]
+                 [--no_download]
                  test_name data_server_ip data_server_port
 
 positional arguments:
@@ -269,6 +309,8 @@ options:
                         default: wlan0
   --server_iface SERVER_IFACE
                         default: eth0
+  --radius_port RADIUS_PORT
+                        RADIUS server auth port, default: 1812
   --no_pcap             Skip PCAP generation
   --no_test             Skip test case execution
   --no_upload           Do not upload chunks

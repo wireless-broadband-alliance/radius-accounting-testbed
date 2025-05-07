@@ -14,29 +14,37 @@ from src.inputs import SSID as DEFAULT_SSID
 class Command:
     """Base class for running commands in background and writing to log file"""
 
-    def __init__(self, name: str, command: list, log_file, wait_time=None):
+    def __init__(self, name: str, command: list, log_file, wait_time=None, env=None):
         self.command = command
         self.name = name
         self.log_file = log_file
         self.wait_time = wait_time
         self.process = None
         self.thread = None
+        if env is not None:
+            base_env = os.environ.copy()
+            self.env = {**base_env, **env}
+        else:
+            self.env = None
 
         # Create directory for log file if it doesn't exist
         directory = os.path.dirname(log_file)
         if not os.path.exists(directory):
-            logging.info(f"Creating directory {directory}")
+            logging.info("Creating directory %s", directory)
             os.makedirs(directory)
 
     def run_subprocess(self):
-        # write to log file, append if needed
-        with open(self.log_file, "a") as log:
-            self.process = subprocess.Popen(self.command, stdout=log, stderr=log)
+        """write to log file, append if needed"""
+        with open(self.log_file, "a", encoding='utf-8') as log:
+            if self.env:
+                self.process = subprocess.Popen(self.command, stdout=log, stderr=log, env=self.env)
+            else:
+                self.process = subprocess.Popen(self.command, stdout=log, stderr=log)
             self.process.wait()
 
     def start(self):
         """Run command in background, return process object"""
-        logging.info(f"Starting {self.name}...")
+        logging.info("Starting %s", self.name)
         self.thread = threading.Thread(target=self.run_subprocess)
         self.thread.start()
 
@@ -46,20 +54,20 @@ class Command:
             assert self.process is not None
             if not self.thread.is_alive():
                 return_code = self.process.returncode
-                raise Exception(
+                raise RuntimeError(
                     f"Command ended with within {self.wait_time} seconds with return code: {return_code}"
                 )
 
     def stop(self):
+        """Stop the process"""
         if self.process is not None:
-            logging.info(f"Stopping {self.name}...")
+            logging.info("Stopping %s", self.name)
             pid = self.process.pid
             os.kill(pid, signal.SIGTERM)
-            # self.process.kill()
             self.process = None
             self.thread = None
         else:
-            logging.debug(f"process {self.name} already stopped...")
+            logging.debug("process %s already stopped...", self.name)
 
 
 class WpaSupplicant(Command):
@@ -79,10 +87,6 @@ class WpaSupplicant(Command):
         self.config_location = config_location
         self.wait_time = wait_time
         self.username = None
-        self.initialize()
-
-    def initialize(self):
-        """Write new wpa_supplicant config file and get command"""
         self.write_wpa_supplicant_conf()
         cmd = [
             "wpa_supplicant",
@@ -138,10 +142,10 @@ class WpaSupplicant(Command):
         # Get string contents of config file
         username, config_contents = self.__get_wpa_supplicant_conf()
 
-        logging.debug(f"Writing WPA supplicant config to {self.config_location}")
+        logging.debug("Writing WPA supplicant config to %s", self.config_location)
 
         # Write config to disk
-        with open(self.config_location, "w") as file:
+        with open(self.config_location, "w", encoding='utf-8') as file:
             file.write(config_contents)
         self.username = username
 
@@ -154,7 +158,11 @@ class FreeRADIUS(Command):
         log_location,
         wait_time=5,
         debug=False,
+        port:int =1812,
     ):
+        env = {}
+        env['AUTH_PORT'] = str(port)
+        env['ACCT_PORT'] = str(port + 1)
         self.log_location = log_location
         self.wait_time = wait_time
         if debug:
@@ -163,7 +171,7 @@ class FreeRADIUS(Command):
             cmd = ["freeradius", "-f", "-l", "stdout"]
         subprocess.Popen(["systemctl", "stop", "freeradius.service"])
 
-        super().__init__("FreeRADIUS", cmd, self.log_location, self.wait_time)
+        super().__init__("FreeRADIUS", cmd, self.log_location, self.wait_time, env=env)
 
 
 class TCPDump(Command):
@@ -175,9 +183,7 @@ class TCPDump(Command):
         log_location,
         interface="eth0",
         wait_time=2,
-        filter="port 1812 or port 1813",
+        _filter="port 1812 or port 1813",
     ):
-        log_location = log_location
-        wait_time = wait_time
-        cmd = ["tcpdump", "-i", interface, "-w", pcap_location, filter]
+        cmd = ["tcpdump", "-i", interface, "-w", pcap_location, _filter]
         super().__init__("tcpdump", cmd, log_location, wait_time)

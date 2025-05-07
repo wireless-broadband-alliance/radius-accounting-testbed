@@ -9,7 +9,8 @@ def cliargs():
       inputs.KEY_SSID: "ssid_from_cli",
       inputs.KEY_GENERATE_PCAP: True,
       inputs.KEY_DOWNLOAD_CHUNKS: True,
-      inputs.KEY_TEST_NAME: "does not show because it is a required arg"
+      inputs.KEY_TEST_NAME: "does not show because it is a required arg",
+      inputs.KEY_RADIUS_PORT: 1234
     }
     return cliargs
 

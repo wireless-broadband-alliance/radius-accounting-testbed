@@ -19,6 +19,7 @@ KEY_MARKERS = "markers"
 KEY_BRAND = "sut_brand"
 KEY_HARDWARE = "sut_hardware"
 KEY_SOFTWARE = "sut_software"
+KEY_RADIUS_PORT = "radius_port"
 
 KEY_DATA_SERVER_IP = "data_server_ip"
 KEY_DATA_SERVER_PORT = "data_server_port"
@@ -31,6 +32,7 @@ CHUNK_SIZE = 1024
 SSID = "raatest"
 DATA_SERVER_LISTEN_PORT = 8000
 DATA_SERVER_PORT = 8000
+RADIUS_PORT = 1812
 CHUNKS = 10
 SUT = ""
 GENERATE_PCAP = True
@@ -45,30 +47,31 @@ HARDWARE = "Not Specified"
 SOFTWARE = "Not Specified"
 
 def get_required_args() -> list:
-  return [KEY_TEST_NAME, KEY_DATA_SERVER_IP, KEY_DATA_SERVER_PORT]
+    """Only these are the required arguments."""
+    return [KEY_TEST_NAME, KEY_DATA_SERVER_IP, KEY_DATA_SERVER_PORT]
 
 def get_defaults() -> dict:
-   """Return the default values. These take lowest priority."""
-   defaults = {
-     KEY_ROOT_DIR: ROOT_DIR,
-     KEY_CLIENT_IFACE: CLIENT_IFACE,
-     KEY_SERVER_IFACE: SERVER_IFACE,
-     KEY_CHUNK_SIZE: CHUNK_SIZE,
-     KEY_SSID: SSID,
-     KEY_DATA_SERVER_LISTEN_PORT: DATA_SERVER_LISTEN_PORT,
-     KEY_CHUNKS: CHUNKS,
-     KEY_GENERATE_PCAP: GENERATE_PCAP,
-     KEY_GENERATE_REPORT: GENERATE_REPORT,
-     KEY_UPLOAD_CHUNKS: UPLOAD_CHUNKS,
-     KEY_DOWNLOAD_CHUNKS: DOWNLOAD_CHUNKS,
-     KEY_RELATIVE_PYTEST_INI: RELATIVE_PYTEST_INI,
-     KEY_MARKERS: MARKERS,
-     KEY_BRAND: BRAND,
-     KEY_HARDWARE: HARDWARE,
-     KEY_SOFTWARE: SOFTWARE,
-
-   }
-   return defaults
+    """Return the default values. These take lowest priority."""
+    defaults = {
+      KEY_ROOT_DIR: ROOT_DIR,
+      KEY_CLIENT_IFACE: CLIENT_IFACE,
+      KEY_SERVER_IFACE: SERVER_IFACE,
+      KEY_CHUNK_SIZE: CHUNK_SIZE,
+      KEY_SSID: SSID,
+      KEY_DATA_SERVER_LISTEN_PORT: DATA_SERVER_LISTEN_PORT,
+      KEY_CHUNKS: CHUNKS,
+      KEY_GENERATE_PCAP: GENERATE_PCAP,
+      KEY_GENERATE_REPORT: GENERATE_REPORT,
+      KEY_UPLOAD_CHUNKS: UPLOAD_CHUNKS,
+      KEY_DOWNLOAD_CHUNKS: DOWNLOAD_CHUNKS,
+      KEY_RELATIVE_PYTEST_INI: RELATIVE_PYTEST_INI,
+      KEY_MARKERS: MARKERS,
+      KEY_BRAND: BRAND,
+      KEY_HARDWARE: HARDWARE,
+      KEY_SOFTWARE: SOFTWARE,
+      KEY_RADIUS_PORT: RADIUS_PORT,
+    }
+    return defaults
 
 def get_all_args(*dicts) -> ChainMap:
     """Merge dictionaries from different optional arguments (e.g., CLI, config, default)."""

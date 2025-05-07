@@ -3,14 +3,13 @@
 import json
 from datetime import datetime
 from dataclasses import dataclass
+from typing import Union
 from src.files import get_metadata_filename
 from src.data_transfer import UsageCounter
-from typing import Union
-
 
 @dataclass
 class Metadata:
-    """Metadata for a test."""
+    """Metadata for a test, it is provided to Pytest for the testing portion."""
 
     username: str
     session_duration: int
@@ -23,6 +22,7 @@ class Metadata:
     end_time: datetime
     uploaded: bool
     downloaded: bool
+    radius_port: int
     usage_upload: Union[UsageCounter, None] = None
     usage_download: Union[UsageCounter, None] = None
     _date_format: str = "%Y-%m-%d %H:%M:%S"
@@ -35,12 +35,15 @@ class Metadata:
             self.end_time = datetime.strptime(self.end_time, self._date_format)
 
     def get_upload_packets(self):
+        """Get the number of packets sent."""
         return self.usage_upload.packets_sent if self.usage_upload else None
 
     def get_download_packets(self):
+        """Get the number of packets received."""
         return self.usage_download.packets_recv if self.usage_download else None
 
     def get_dict(self) -> dict:
+        """Convert the Metadata object to a dictionary for easier interpretation."""
         return {
             "username": self.username,
             "session_duration": self.session_duration,
@@ -57,6 +60,7 @@ class Metadata:
             else None,
             "start_time": self.start_time.strftime(self._date_format),
             "end_time": self.end_time.strftime(self._date_format),
+            "radius_port": self.radius_port,
         }
 
     def pretty_print_format(self):
@@ -66,7 +70,7 @@ class Metadata:
 def get_metadata(test_name, root_dir) -> Metadata:
     """Convert metadata JSON file to Metadata object."""
     metadata_file = get_metadata_filename(test_name, root_dir)
-    with open(metadata_file) as f:
+    with open(metadata_file, encoding='utf-8') as f:
         metadata_dict = json.load(f)
     metadata_dict["usage_upload"] = (
         UsageCounter(**metadata_dict["usage_upload"])

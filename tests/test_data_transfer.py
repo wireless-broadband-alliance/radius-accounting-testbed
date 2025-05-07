@@ -1,42 +1,47 @@
-from src.data_transfer import TCPServer
-import logging
-import time
-import pytest
+"""Test data transfer functionality using TCPServer."""
 
-chunk_size = 1000
-chunks = 1000
-client_iface = "lo"
-sleep_time = 10
-test_tolerance = 0.05
+import logging
+import pytest
+from src.data_transfer import TCPServer
+
+CHUNK_SIZE = 1000
+CHUNKS = 1000
+CLIENT_IFACE = "lo"
+SLEEP_TIME = 10
+TEST_TOLERANCE = 0.05
 
 
 @pytest.fixture(scope="module", autouse=True)
 def data_server():
-    # Create TCP server
-    data_server = TCPServer(
+    """Create a TCP server for testing."""
+    server = TCPServer(
         dst_host="127.0.0.1",
         dst_port=8000,
         listen_port=8000,
-        chunk_size=chunk_size,
-        chunks=chunks,
-        client_iface=client_iface,
+        chunk_size=CHUNK_SIZE,
+        chunks=CHUNKS,
+        client_iface=CLIENT_IFACE,
     )
-    return data_server
+    return server
 
 
 def test_download(data_server):
-    time.sleep(30)
+    """Test the download functionality of the TCP server."""
     logging.info("Starting download test")
     data_server.start(download=True)
     usage = data_server.transfer_data()
-    assert usage.bytes_recv > chunk_size * chunks
-    assert usage.bytes_recv < chunk_size * chunks * (1 + test_tolerance)
+    lower = CHUNK_SIZE*CHUNKS
+    upper = CHUNK_SIZE * CHUNKS * (1 + TEST_TOLERANCE)
+    assert usage.bytes_recv > lower
+    assert usage.bytes_recv < upper
 
 
 def test_upload(data_server):
-    time.sleep(30)
+    """Test the upload functionality of the TCP server."""
     logging.info("Starting upload test")
     data_server.start(download=False)
     usage = data_server.transfer_data()
-    assert usage.bytes_sent > chunk_size * chunks
-    assert usage.bytes_sent < chunk_size * chunks * (1 + test_tolerance)
+    lower = CHUNK_SIZE*CHUNKS
+    upper = CHUNK_SIZE * CHUNKS * (1 + TEST_TOLERANCE)
+    assert usage.bytes_sent > lower
+    assert usage.bytes_sent < upper

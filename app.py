@@ -1,14 +1,14 @@
 """Streamlit UI for RADIUS Accounting Assurance Test Bed"""
 
-import streamlit as st
-import logging
-import src.testbed_setup as ts
-import pytest
 import time
-import yaml
-import os
+import logging
 from typing import List
+import os
+import yaml
 from streamlit.logger import get_logger
+import streamlit as st
+import pytest
+import src.testbed_setup as ts
 from src.testbed_setup import TestConfig
 import src.files as files
 import src.inputs as inputs
@@ -125,6 +125,11 @@ def text_input_client_interface(default=inputs.CLIENT_IFACE):
     help = "Wireless interface used by the 802.1X client."
     return st.text_input("Client Interface", value=default, help=help)
 
+def text_input_radius_port(default=inputs.RADIUS_PORT):
+    """RADIUS port"""
+    help = "RADIUS port to listen on."
+    return st.number_input("RADIUS port", value=default, help=help)
+
 
 def text_input_server_interface(default=inputs.SERVER_IFACE):
     """Server interface input field"""
@@ -203,6 +208,7 @@ def build_form(opts):
         checkbox_generate_pcap, checkbox_execute_test_cases = checkbox_select_test_parts(
             opts[inputs.KEY_GENERATE_PCAP], opts[inputs.KEY_GENERATE_REPORT]
     )
+    radius_port = text_input_radius_port(opts[inputs.KEY_RADIUS_PORT])
     possible_markers = get_possible_markers()
     markers = get_selected_markers(possible_markers, opts[inputs.KEY_MARKERS])
     client_interface = text_input_client_interface(opts[inputs.KEY_CLIENT_IFACE])
@@ -230,6 +236,7 @@ def build_form(opts):
         client_interface=client_interface,
         server_interface=server_interface,
         local_output_directory=local_output_directory,
+        radius_port=int(radius_port),
     )
     return config
 
